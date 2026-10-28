@@ -1,3 +1,13 @@
+---
+title: Lokantra Backend
+emoji: ⚡
+colorFrom: indigo
+colorTo: purple
+sdk: gradio
+app_file: app.py
+pinned: false
+---
+
 <div align="center">
 
 <img src="./static/image/lokantra_emblem.png" alt="LOKĀNTRA Emblem" width="180"/>
