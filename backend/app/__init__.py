@@ -39,7 +39,7 @@ def create_app(config_class=Config):
         logger.info("=" * 50)
     
     # Enable CORS
-    CORS(app, resources={r"/api/*": {"origins": "*"}})
+    CORS(app, resources={r"/*": {"origins": "*"}}, supports_credentials=True)
     
     # Register simulation process cleanup function
     from .services.simulation_runner import SimulationRunner
