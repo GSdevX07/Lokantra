@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Syne';
+  src: url('./assets/fonts/Syne-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Syne';
+  src: url('./assets/fonts/Syne-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('./assets/fonts/ClashDisplay-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('./assets/fonts/ClashDisplay-Semibold.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Unbounded';
+  src: url('./assets/fonts/Unbounded-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-heading: 'HelveticaNowDisplay-Medium', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'HelveticaNowDisplayW01-Rg', 'Helvetica Neue', Arial, sans-serif;
+  --font-display: 'Syne', 'ClashDisplay', sans-serif;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+@keyframes blink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* --- Bold Unique Hero Highlight Line --- */
+.hero-highlight-wrap {
+  position: relative;
+  user-select: none;
+}
+
+.hero-highlight-title {
+  font-family: var(--font-display, 'Syne', 'ClashDisplay', sans-serif);
+  font-size: clamp(30px, 5vw, 60px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.038em;
+  display: flex;
+  flex-direction: column;
+  gap: 0.1em;
+  margin: 0;
+}
+
+.hero-text-white {
+  color: #ffffff;
+  text-shadow: 0 0 35px rgba(0, 0, 0, 0.95), 0 2px 4px rgba(0, 0, 0, 0.9);
+}
+
+.hero-text-dark {
+  color: #050505;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.7);
+}
+
+.hero-text-silver,
+.hero-text-gold {
+  background: linear-gradient(
+    135deg,
+    #18181b 0%,
+    #3f3f46 16%,
+    #71717a 32%,
+    #d4d4d8 46%,
+    #ffffff 54%,
+    #a1a1aa 68%,
+    #52525b 84%,
+    #18181b 100%
+  );
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: silver-shimmer 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.2));
+  display: inline-block;
+}
+
+@keyframes silver-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes gold-shimmer {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
