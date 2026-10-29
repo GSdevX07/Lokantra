@@ -8,13 +8,15 @@ const state = reactive({
   files: [],
   simulationRequirement: '',
   directText: '',
+  superSpeed: false,
   isPending: false
 })
 
-export function setPendingUpload(files, requirement, directText = '') {
+export function setPendingUpload(files, requirement, directText = '', superSpeed = false) {
   state.files = files || []
   state.simulationRequirement = requirement || ''
   state.directText = directText || ''
+  state.superSpeed = !!superSpeed
   state.isPending = true
 }
 
@@ -23,6 +25,7 @@ export function getPendingUpload() {
     files: state.files,
     simulationRequirement: state.simulationRequirement,
     directText: state.directText,
+    superSpeed: state.superSpeed,
     isPending: state.isPending
   }
 }
@@ -31,6 +34,7 @@ export function clearPendingUpload() {
   state.files = []
   state.simulationRequirement = ''
   state.directText = ''
+  state.superSpeed = false
   state.isPending = false
 }
 

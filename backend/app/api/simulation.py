@@ -497,6 +497,15 @@ def prepare_simulation():
         entity_types_list = data.get('entity_types')
         use_llm_for_profiles = data.get('use_llm_for_profiles', True)
         parallel_profile_count = data.get('parallel_profile_count', 5)
+        super_speed = bool(data.get('super_speed', False))
+        max_agents = data.get('max_agents')
+        if super_speed and not max_agents:
+            max_agents = 15
+        if max_agents is not None:
+            try:
+                max_agents = int(max_agents)
+            except (ValueError, TypeError):
+                max_agents = 15
         
         # ========== Synchronously fetch entity count (before background task starts) ==========
         # Allows frontend to receive expected Agent count immediately upon prepare call
@@ -509,8 +518,11 @@ def prepare_simulation():
                 defined_entity_types=entity_types_list,
                 enrich_with_edges=False  # Do not fetch edges for speed
             )
-            # Save entity count to state for immediate frontend access
-            state.entities_count = filtered_preview.filtered_count
+            # Save entity count to state for immediate frontend access (clamp to max_agents if super_speed)
+            if max_agents and filtered_preview.filtered_count > max_agents:
+                state.entities_count = max_agents
+            else:
+                state.entities_count = filtered_preview.filtered_count
             state.entity_types = list(filtered_preview.entity_types)
             logger.info(f"Expected entities count: {filtered_preview.filtered_count}, types: {filtered_preview.entity_types}")
         except Exception as e:
@@ -617,7 +629,9 @@ def prepare_simulation():
                     defined_entity_types=entity_types_list,
                     use_llm_for_profiles=use_llm_for_profiles,
                     progress_callback=progress_callback,
-                    parallel_profile_count=parallel_profile_count
+                    parallel_profile_count=parallel_profile_count,
+                    max_agents=max_agents,
+                    super_speed=super_speed
                 )
 
                 if result_state.status == SimulationStatus.FAILED:

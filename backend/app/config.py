@@ -32,7 +32,7 @@ class Config:
     LLM_BASE_URL = os.environ.get('LLM_BASE_URL', 'https://api.openai.com/v1')
     LLM_MODEL_NAME = os.environ.get('LLM_MODEL_NAME', 'gpt-4o-mini')
     
-    # Graph provider configuration ('tigergraph' vs 'zep')
+    # Graph provider configuration ('tigergraph' vs 'tigergraph')
     GRAPH_PROVIDER = os.environ.get('GRAPH_PROVIDER', 'tigergraph').strip().lower()
 
     @classmethod

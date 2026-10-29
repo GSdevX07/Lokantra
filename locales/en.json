@@ -38,6 +38,7 @@
     "heroDescAgentScale": "million-scale Agents",
     "heroDescOptimalSolution": "\"local optimum\"",
     "slogan": "Let Agents rehearse the future, let decisions prevail",
+    "whyDifferent": "Why Are We Different?",
     "systemStatus": "System Status",
     "systemReady": "Ready",
     "systemReadyDesc": "Prediction engine on standby. Upload unstructured data to initialize a simulation sequence.",

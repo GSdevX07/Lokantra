@@ -593,6 +593,10 @@ const handleNewProject = async () => {
     const response = await generateOntology(formDataObj)
     
     if (response.success) {
+      // Preserve speed mode preference
+      if (pending.superSpeed !== undefined) {
+        sessionStorage.setItem('lokantra_super_speed', pending.superSpeed ? 'true' : 'false')
+      }
       // Clear pending upload data
       clearPendingUpload()
       

@@ -609,12 +609,31 @@ class TwitterSimulationRunner:
         
         # Create environment
         print("Creating OASIS environment...")
-        self.env = oasis.make(
-            agent_graph=self.agent_graph,
-            platform=oasis.DefaultPlatformType.TWITTER,
-            database_path=db_path,
-            semaphore=30,  # Limit max concurrent LLM requests
-        )
+        try:
+            from oasis.social_platform.platform import Platform as OasisPlatform
+            from oasis.social_platform.channel import Channel as OasisChannel
+            tw_channel = OasisChannel()
+            tw_platform = OasisPlatform(
+                db_path=db_path,
+                channel=tw_channel,
+                recsys_type="random",
+                refresh_rec_post_count=2,
+                max_rec_post_len=5,
+                following_post_count=3,
+            )
+            self.env = oasis.make(
+                agent_graph=self.agent_graph,
+                platform=tw_platform,
+                database_path=db_path,
+                semaphore=30,
+            )
+        except Exception:
+            self.env = oasis.make(
+                agent_graph=self.agent_graph,
+                platform=oasis.DefaultPlatformType.TWITTER,
+                database_path=db_path,
+                semaphore=30,
+            )
         
         await self.env.reset()
         print("Environment initialization completed\n")

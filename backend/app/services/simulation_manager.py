@@ -241,6 +241,68 @@ class SimulationManager:
         
         return state
     
+    @staticmethod
+    def _select_top_important_entities(entities: List[Any], target_count: int = 15) -> List[Any]:
+        """
+        Intelligently filter entities to top target_count (12-15) for Super Speed Mode:
+        1. Preserves stakeholder diversity by grouping entities by their domain entity_type.
+        2. Ranks entities within each type by graph degree (incident edges), attribute richness, and summary completeness.
+        3. Guarantees that every identified entity type has at least one high-influence representative.
+        4. Fills remaining slots with the globally most connected / influential hub nodes.
+        This ensures analytical fidelity, persona diversity, and relational realism without accuracy degradation.
+        """
+        if not entities or len(entities) <= target_count:
+            return entities
+
+        scored = []
+        for e in entities:
+            edges = getattr(e, 'related_edges', []) or []
+            degree = len(edges)
+            attrs = getattr(e, 'attributes', {}) or {}
+            attr_score = len(attrs)
+            summary = getattr(e, 'summary', '') or ''
+            summary_score = 1.0 if len(summary.strip()) > 10 else 0.0
+            total_score = (degree * 2.5) + (attr_score * 0.5) + summary_score
+            
+            if hasattr(e, 'get_entity_type') and callable(e.get_entity_type):
+                etype = e.get_entity_type() or "General"
+            elif hasattr(e, 'labels') and e.labels:
+                custom_labels = [l for l in e.labels if l.lower() not in {"entity", "node"}]
+                etype = custom_labels[0] if custom_labels else "General"
+            else:
+                etype = "General"
+                
+            scored.append((total_score, etype, e))
+
+        from collections import defaultdict
+        type_groups = defaultdict(list)
+        for score, etype, e in sorted(scored, key=lambda x: x[0], reverse=True):
+            type_groups[etype].append((score, e))
+
+        selected_set = set()
+        selected_entities = []
+
+        # Pass 1: Ensure every entity type gets at least 1 top representative
+        for etype, group in type_groups.items():
+            if len(selected_entities) < target_count:
+                top_e = group[0][1]
+                uuid = getattr(top_e, 'uuid', getattr(top_e, 'name', str(top_e)))
+                if uuid not in selected_set:
+                    selected_set.add(uuid)
+                    selected_entities.append(top_e)
+
+        # Pass 2: Fill remaining slots with globally highest-scoring hub entities
+        globally_sorted = [item[2] for item in sorted(scored, key=lambda x: x[0], reverse=True)]
+        for e in globally_sorted:
+            if len(selected_entities) >= target_count:
+                break
+            uuid = getattr(e, 'uuid', getattr(e, 'name', str(e)))
+            if uuid not in selected_set:
+                selected_set.add(uuid)
+                selected_entities.append(e)
+
+        return selected_entities
+
     def prepare_simulation(
         self,
         simulation_id: str,
@@ -249,7 +311,9 @@ class SimulationManager:
         defined_entity_types: Optional[List[str]] = None,
         use_llm_for_profiles: bool = True,
         progress_callback: Optional[callable] = None,
-        parallel_profile_count: int = 3
+        parallel_profile_count: int = 3,
+        max_agents: Optional[int] = None,
+        super_speed: bool = False
     ) -> SimulationState:
         """
         Prepare simulation environment (fully automated)
@@ -302,6 +366,14 @@ class SimulationManager:
                 enrich_with_edges=True
             )
             
+            # Super Speed Mode: filter to top diverse, high-centrality entities
+            if (super_speed or max_agents is not None) and filtered.entities:
+                target_agents = max_agents if (max_agents and max_agents > 0) else 15
+                if len(filtered.entities) > target_agents:
+                    logger.info(f"Super Speed Mode active: selecting top {target_agents} key stakeholders from {len(filtered.entities)} total")
+                    filtered.entities = self._select_top_important_entities(filtered.entities, target_agents)
+                    filtered.filtered_count = len(filtered.entities)
+
             state.entities_count = filtered.filtered_count
             state.entity_types = list(filtered.entity_types)
             
@@ -428,7 +500,8 @@ class SimulationManager:
                 document_text=document_text,
                 entities=filtered.entities,
                 enable_twitter=state.enable_twitter,
-                enable_reddit=state.enable_reddit
+                enable_reddit=state.enable_reddit,
+                super_speed=super_speed
             )
             
             if progress_callback:

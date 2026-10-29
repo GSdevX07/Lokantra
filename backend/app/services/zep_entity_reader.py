@@ -12,10 +12,11 @@ from .zep_entity_reader_impl import (
     ZepEntityReader as OriginalZepEntityReader,
 )
 
-if Config.is_tigergraph():
-    ZepEntityReader = TigerGraphEntityReader
-else:
-    ZepEntityReader = OriginalZepEntityReader
+class ZepEntityReader:
+    def __new__(cls, *args, **kwargs):
+        if Config.is_tigergraph():
+            return TigerGraphEntityReader(*args, **kwargs)
+        return OriginalZepEntityReader(*args, **kwargs)
 
 __all__ = [
     "EntityNode",

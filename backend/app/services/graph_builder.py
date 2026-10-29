@@ -13,10 +13,11 @@ from .zep_builder_impl import (
     GraphBuilderService as ZepGraphBuilderService,
 )
 
-if Config.is_tigergraph():
-    GraphBuilderService = TigerGraphBuilderService
-else:
-    GraphBuilderService = ZepGraphBuilderService
+class GraphBuilderService:
+    def __new__(cls, *args, **kwargs):
+        if Config.is_tigergraph():
+            return TigerGraphBuilderService(*args, **kwargs)
+        return ZepGraphBuilderService(*args, **kwargs)
 
 __all__ = [
     "GraphInfo",
