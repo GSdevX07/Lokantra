@@ -170,11 +170,50 @@ class TigerGraphMemoryUpdater:
         self._flush_buffer()
         logger.info(f"TigerGraphMemoryUpdater stopped for graph={self.graph_id}")
 
+    def is_active(self) -> bool:
+        """Check if updater is actively processing or worker is alive."""
+        worker_alive = bool(self._worker_thread and self._worker_thread.is_alive())
+        return self._running or worker_alive or not self._activity_queue.empty()
+
+    def get_stats(self) -> Dict[str, Any]:
+        """Get statistics."""
+        with self._buffer_lock:
+            buffer_size = len(self._buffer)
+        return {
+            "graph_id": self.graph_id,
+            "simulation_id": self.simulation_id,
+            "batch_size": self.BATCH_SIZE,
+            "total_activities": self._total_activities,
+            "batches_sent": self._total_sent,
+            "items_sent": self._total_sent,
+            "failed_count": self._failed_count,
+            "queue_size": self._activity_queue.qsize(),
+            "buffer_size": buffer_size,
+        }
+
     def add_activity(self, activity: AgentActivity):
         if activity.action_type == "DO_NOTHING":
             return
         self._total_activities += 1
         self._activity_queue.put(activity)
+
+    def add_activity_from_dict(self, data: Dict[str, Any], platform: str):
+        """Add activity from dictionary data parsed from actions.jsonl."""
+        if "event_type" in data or data.get("action_type") == "DO_NOTHING":
+            return
+        if data.get("success") is False:
+            return
+
+        activity = AgentActivity(
+            platform=platform,
+            agent_id=data.get("agent_id", 0),
+            agent_name=data.get("agent_name", ""),
+            action_type=data.get("action_type", ""),
+            action_args=data.get("action_args", {}),
+            round_num=data.get("round", 0),
+            timestamp=data.get("timestamp", datetime.now().isoformat()),
+        )
+        self.add_activity(activity)
 
     def _worker_loop(self):
         last_flush = time.time()
@@ -298,37 +337,122 @@ class TigerGraphMemoryUpdater:
 
 
 class TigerGraphMemoryManager:
-    """Manages active updaters per simulation and graph."""
+    """Manages active updaters per simulation."""
     _updaters: Dict[str, TigerGraphMemoryUpdater] = {}
     _lock = threading.Lock()
+    _stop_all_done = False
+
+    @classmethod
+    def force_remove_updater(cls, simulation_id: str) -> Optional[TigerGraphMemoryUpdater]:
+        """Forcefully remove updater from registry."""
+        with cls._lock:
+            updater = cls._updaters.pop(simulation_id, None)
+            if updater:
+                logger.info(f"Force removed graph memory updater: simulation_id={simulation_id}")
+            return updater
+
+    @classmethod
+    def create_updater(cls, simulation_id: str, graph_id: str) -> TigerGraphMemoryUpdater:
+        """Create graph memory updater for simulation."""
+        with cls._lock:
+            if simulation_id in cls._updaters:
+                cls._updaters[simulation_id].stop()
+
+            updater = TigerGraphMemoryUpdater(
+                graph_id=graph_id,
+                simulation_id=simulation_id,
+            )
+            updater.start()
+            cls._updaters[simulation_id] = updater
+            cls._stop_all_done = False
+            logger.info(f"Created graph memory updater: simulation_id={simulation_id}, graph_id={graph_id}")
+            return updater
+
+    @classmethod
+    def get_updater(cls, simulation_id: str) -> Optional[TigerGraphMemoryUpdater]:
+        """Get active updater for simulation."""
+        with cls._lock:
+            return cls._updaters.get(simulation_id)
 
     @classmethod
     def get_or_create(cls, graph_id: str, simulation_id: str) -> TigerGraphMemoryUpdater:
-        with cls._lock:
-            key = f"{graph_id}:{simulation_id}"
-            if key not in cls._updaters:
-                updater = TigerGraphMemoryUpdater(graph_id=graph_id, simulation_id=simulation_id)
-                updater.start()
-                cls._updaters[key] = updater
-            return cls._updaters[key]
-
-    @classmethod
-    def discard(cls, simulation_id: str):
-        with cls._lock:
-            for key, updater in list(cls._updaters.items()):
-                if key.endswith(f":{simulation_id}"):
-                    updater.stop()
-                    del cls._updaters[key]
+        updater = cls.get_updater(simulation_id)
+        if updater is None:
+            updater = cls.create_updater(simulation_id, graph_id)
+        return updater
 
     @classmethod
     def get_simulation_ids_for_graph(cls, graph_id: str) -> List[str]:
+        """Return simulations whose updater still owns or drains this graph."""
         with cls._lock:
-            prefix = f"{graph_id}:"
-            return [k[len(prefix):] for k in cls._updaters if k.startswith(prefix)]
+            return sorted(
+                simulation_id
+                for simulation_id, updater in cls._updaters.items()
+                if updater.graph_id == graph_id
+            )
 
     @classmethod
-    def discard_inactive_updater(cls, simulation_id: str):
-        cls.discard(simulation_id)
+    def get_simulation_ids(cls) -> List[str]:
+        """Return every simulation with a retained updater."""
+        with cls._lock:
+            return sorted(cls._updaters)
+
+    @classmethod
+    def discard_inactive_updater(cls, simulation_id: str) -> bool:
+        """Discard an inactive updater."""
+        with cls._lock:
+            updater = cls._updaters.get(simulation_id)
+            if updater is None:
+                return False
+            worker_alive = bool(
+                updater._worker_thread and updater._worker_thread.is_alive()
+            )
+            if updater._running or worker_alive:
+                raise RuntimeError(
+                    f"TigerGraph updater for {simulation_id} is still active"
+                )
+            cls._updaters.pop(simulation_id, None)
+        logger.warning(
+            f"Discarded updater: simulation_id={simulation_id}, graph_id={updater.graph_id}"
+        )
+        return True
+
+    @classmethod
+    def stop_updater(cls, simulation_id: str):
+        """Stop and remove updater for simulation."""
+        with cls._lock:
+            updater = cls._updaters.get(simulation_id)
+        if updater is None:
+            return
+        updater.stop()
+        with cls._lock:
+            if cls._updaters.get(simulation_id) is updater:
+                cls._updaters.pop(simulation_id, None)
+        logger.info(f"Stopped graph memory updater: simulation_id={simulation_id}")
+
+    @classmethod
+    def stop_all(cls):
+        """Stop all active updaters."""
+        if cls._stop_all_done:
+            return
+        with cls._lock:
+            updaters = list(cls._updaters.values())
+        for u in updaters:
+            try:
+                u.stop()
+            except Exception as e:
+                logger.warning(f"Error stopping updater: {e}")
+        with cls._lock:
+            cls._updaters.clear()
+            cls._stop_all_done = True
+
+    @classmethod
+    def get_all_stats(cls) -> Dict[str, Dict[str, Any]]:
+        with cls._lock:
+            return {
+                sim_id: updater.get_stats()
+                for sim_id, updater in cls._updaters.items()
+            }
 
 
 # Export aliases for seamless backwards-compatibility
