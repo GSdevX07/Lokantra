@@ -1,7 +1,7 @@
 /**
- * Audio Recorder & Sarvam AI Saaras Transcriber
- * Records single-channel 16kHz 16-bit PCM WAV (Sarvam AI Saaras native specification)
- * Handles Base64 conversion, warmups, and browser SpeechRecognition fallback.
+ * Audio Recorder & Transcriber
+ * Records single-channel 16kHz 16-bit PCM WAV
+ * Handles Base64 conversion and browser SpeechRecognition fallback.
  */
 
 import axios from 'axios'
@@ -122,7 +122,6 @@ export async function start16kHzRecording() {
     }
   })
 
-  // Try warming up voice engine in background
   warmupVoiceEngine()
 
   const AudioContextClass = window.AudioContext || window.webkitAudioContext
@@ -146,17 +145,14 @@ export async function start16kHzRecording() {
 
   return {
     async stop() {
-      // Disconnect audio nodes
       processor.disconnect()
       source.disconnect()
       
-      // Stop all mic tracks
       stream.getTracks().forEach(t => t.stop())
       await audioContext.close()
 
       const duration = (Date.now() - startTime) / 1000
 
-      // Merge all recorded Float32 chunks
       let totalLength = 0
       for (const chunk of audioChunks) {
         totalLength += chunk.length
@@ -169,10 +165,7 @@ export async function start16kHzRecording() {
         offset += chunk.length
       }
 
-      // Resample down to 16,000 Hz if needed
       const downsampled16k = downsampleTo16k(mergedAudio, inputSampleRate, 16000)
-
-      // Encode into standard 16kHz WAV
       const wavBuffer = encodeWAV(downsampled16k, 16000)
       const base64Audio = arrayBufferToBase64(wavBuffer)
       const wavBlob = new Blob([wavBuffer], { type: 'audio/wav' })
@@ -187,13 +180,13 @@ export async function start16kHzRecording() {
 }
 
 /**
- * Send audio base64 to backend /api/voice/transcribe (Sarvam AI Saaras Engine)
+ * Send audio base64 to backend /api/voice/transcribe
  * @param {string} audioBase64
  * @param {string} [language='en-IN']
  * @param {string} [mode='transcribe']
- * @returns {Promise<{ success: boolean, text: string, detected_language?: string, provider?: string, error?: string }>}
+ * @returns {Promise<{ success: boolean, text: string, detected_language?: string, error?: string }>}
  */
-export async function transcribeWithSarvam(audioBase64, language = 'en-IN', mode = 'transcribe') {
+export async function transcribeAudio(audioBase64, language = 'en-IN', mode = 'transcribe') {
   try {
     const res = await axios.post('/api/voice/transcribe', {
       audio: audioBase64,
@@ -205,7 +198,7 @@ export async function transcribeWithSarvam(audioBase64, language = 'en-IN', mode
     })
     return res.data
   } catch (err) {
-    const errMsg = err.response?.data?.error || err.message || 'Sarvam AI transcription request failed'
+    const errMsg = err.response?.data?.error || err.message || 'Voice transcription request failed'
     return {
       success: false,
       error: errMsg,
@@ -214,8 +207,6 @@ export async function transcribeWithSarvam(audioBase64, language = 'en-IN', mode
   }
 }
 
-// Backward-compatible alias
-export const transcribeWithWisprFlow = transcribeWithSarvam
 
 /**
  * Pre-warm or check voice engine status
@@ -228,10 +219,9 @@ export async function warmupVoiceEngine() {
   }
 }
 
-export const warmupWisprFlow = warmupVoiceEngine
 
 /**
- * Start Browser Native SpeechRecognition for instant live transcript feedback while speaking
+ * Start Browser Native SpeechRecognition for live preview while speaking
  * @param {Function} onTranscript - callback receiving live string
  * @returns {{ stop: () => void, isSupported: boolean, getFinalText: () => string }}
  */
