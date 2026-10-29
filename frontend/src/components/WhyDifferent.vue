@@ -348,7 +348,7 @@ const pillars = [
   {
     id: 'laya',
     number: '03',
-    title: 'LAYA — System 1 Decision Intelligence',
+    title: 'LAYA  System 1 Decision Intelligence',
     category: 'Fast Reflex Routing & Classification',
     catGroup: 'reflex',
     statusBadge: 'Configured in Repo',
@@ -370,7 +370,7 @@ const pillars = [
   {
     id: 'brainchip-akida',
     number: '04',
-    title: 'BrainChip Akida — Neuromorphic Computing',
+    title: 'BrainChip Akida  Neuromorphic Computing',
     category: 'Event-Driven Neuromorphic Architecture',
     catGroup: 'reflex',
     statusBadge: 'Experimental Path',
