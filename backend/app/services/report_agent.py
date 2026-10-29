@@ -548,6 +548,23 @@ Process:
 
 [Important] Requires an active running simulation environment."""
 
+TOOL_DESC_WEB_SEARCH = """\
+[Live Web Search - Real-World Grounding & Fact Verification]
+Searches the live Google index and news via Serper API to retrieve current real-world statistics, news reports, industry figures, and historical precedents.
+
+Process:
+1. Queries Google search index and news feeds in real time
+2. Pulls verified external facts, metrics, and source URLs
+3. Provides evidence to contrast or corroborate simulated trends with actual real-world precedents
+
+[Use Cases]
+- Verifying whether simulated market/public reactions match historical real-world analogues
+- Pulling fresh macroeconomic numbers, stock indices, or regulatory updates
+- Enriching the prediction report with cited external web sources and references
+
+[Returns]
+- Structured real-world summaries, data points, dates, and direct reference URLs"""
+
 # ── Outline Planning Prompt ──
 
 PLAN_SYSTEM_PROMPT = """\
@@ -914,6 +931,14 @@ class ReportAgent:
                     "interview_topic": "Interview topic or requirement description",
                     "max_agents": "Maximum number of agents to interview (optional, default 5, max 10)"
                 }
+            },
+            "web_search": {
+                "name": "web_search",
+                "description": TOOL_DESC_WEB_SEARCH,
+                "parameters": {
+                    "query": "The real-world topic, entity, metric, or event to look up via live Google search",
+                    "max_results": "Number of live web results to return (optional, default 4)"
+                }
             }
         }
     
@@ -983,6 +1008,19 @@ class ReportAgent:
                     max_agents=max_agents
                 )
                 return result.to_text()
+
+            elif tool_name == "web_search":
+                # Real-world Google search via Serper API for factual grounding and external benchmarking
+                query = parameters.get("query", "")
+                max_results = parameters.get("max_results", 4)
+                if isinstance(max_results, str):
+                    try:
+                        max_results = int(max_results)
+                    except ValueError:
+                        max_results = 4
+                from .web_search_service import WebSearchService
+                search_service = WebSearchService()
+                return search_service.search_for_agent(query=query, max_results=max_results)
             
             # ========== Backward compatible legacy tools (redirected internally) ==========
             

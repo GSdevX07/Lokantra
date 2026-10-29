@@ -260,6 +260,60 @@ def _reset_project_impl(project_id: str):
     })
 
 
+# ============== Web Search Endpoints (Serper API) ==============
+
+@graph_bp.route('/web-search', methods=['POST'])
+def search_web():
+    """
+    Execute live web search via Serper API.
+    Request body: { query: str, num?: int, search_type?: 'search' | 'news' }
+    """
+    data = request.get_json(silent=True) or {}
+    query = (data.get('query') or data.get('q') or '').strip()
+    if not query:
+        return jsonify({'success': False, 'error': 'Query parameter is required', 'results': []}), 400
+    
+    num = data.get('num', 5)
+    try:
+        num = int(num)
+    except (ValueError, TypeError):
+        num = 5
+
+    search_type = data.get('search_type', 'search')
+    
+    from ..services.web_search_service import WebSearchService
+    svc = WebSearchService()
+    res = svc.search(query=query, num=num, search_type=search_type)
+    return jsonify(res)
+
+
+@graph_bp.route('/seed/web-search', methods=['POST'])
+def generate_web_seed():
+    """
+    Synthesizes a structured reality seed dossier from live Google search and news.
+    Request body: { topic: str, num?: int, include_news?: bool }
+    """
+    data = request.get_json(silent=True) or {}
+    topic = (data.get('topic') or data.get('query') or '').strip()
+    if not topic:
+        return jsonify({'success': False, 'error': 'Topic or query is required', 'content': ''}), 400
+    
+    num = data.get('num', 6)
+    try:
+        num = int(num)
+    except (ValueError, TypeError):
+        num = 6
+
+    include_news = data.get('include_news', True)
+    if isinstance(include_news, str):
+        include_news = include_news.lower() in ('true', '1', 'yes')
+
+    from ..services.web_search_service import WebSearchService
+    svc = WebSearchService()
+    dossier = svc.gather_seed_dossier(topic=topic, num=num, include_news=include_news)
+    return jsonify(dossier)
+
+
 # ============== Endpoint 1: Upload files and generate ontology ==============
 
 @graph_bp.route('/ontology/generate', methods=['POST'])

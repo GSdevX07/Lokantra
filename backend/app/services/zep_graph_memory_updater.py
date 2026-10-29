@@ -34,6 +34,12 @@ class ZepGraphMemoryManager:
             return TigerGraphMemoryManager.get_simulation_ids_for_graph(graph_id)
         return OriginalZepGraphMemoryManager.get_simulation_ids_for_graph(graph_id)
 
+    @staticmethod
+    def get_simulation_ids():
+        if Config.is_tigergraph():
+            return TigerGraphMemoryManager.get_simulation_ids()
+        return OriginalZepGraphMemoryManager.get_simulation_ids()
+
 __all__ = [
     "AgentActivity",
     "ZepGraphMemoryUpdater",

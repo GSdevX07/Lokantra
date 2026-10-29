@@ -464,7 +464,7 @@
               <!-- Cheeky Message -->
               <div class="space-y-3">
                 <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/15 text-[11px] font-mono tracking-widest uppercase text-neutral-300">
-                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span>
+                  <span class="w-1.5 h-1.5 rounded-full bg-white "></span>
                   Hold Up &bull; Sign-in Required
                 </div>
                 <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight font-body">
@@ -500,7 +500,7 @@
                 <p v-if="authModalError" class="text-xs text-red-400 font-mono text-center">
                   {{ authModalError }}
                 </p>
-                <p v-if="!isConfigured" class="text-xs text-amber-400/90 text-center">
+                <p v-if="!isConfigured" class="text-xs text-neutral-400 text-center">
                   Note: Supabase credentials not detected in .env file.
                 </p>
 
@@ -590,6 +590,22 @@
                       Ready
                     </span>
                   </button>
+
+                  <button
+                    type="button"
+                    @click="inputMode = 'search'"
+                    :class="[
+                      'px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5',
+                      inputMode === 'search'
+                        ? 'bg-white text-black font-bold shadow-md shadow-black/80'
+                        : 'bg-black text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                    ]"
+                  >
+                    <span>Web Search</span>
+                    <span v-if="webDossierContent" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black text-white font-bold">
+                      {{ webSources.length }} Live
+                    </span>
+                  </button>
                 </div>
 
                 <!-- Normal Upload Box -->
@@ -629,7 +645,7 @@
                 </div>
 
                 <!-- Direct Text Input (Comes when clicked) with Simple White-Border Black Mic Button -->
-                <div v-else class="direct-text-wrapper space-y-2">
+                <div v-else-if="inputMode === 'direct'" class="direct-text-wrapper space-y-2">
                   <div class="flex items-center justify-between">
                     <span class="text-xs text-neutral-400 font-mono">Type or paste scenario details, notes, or data:</span>
                     
@@ -676,6 +692,80 @@
                   <div class="flex justify-between items-center text-[11px] text-neutral-400 font-mono px-1">
                     <span>{{ directTextInput.length }} chars entered</span>
                     <span v-if="directTextInput.trim()" class="text-neutral-200 font-semibold">&#10003; Ready without document</span>
+                  </div>
+                </div>
+
+                <!-- Web Search Mode (Live Serper Search & Dossier Generator) -->
+                <div v-else-if="inputMode === 'search'" class="web-search-wrapper space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-neutral-400 font-mono">Live Google Serper Intelligence:</span>
+                    <span v-if="isSearchingWeb" class="text-xs font-mono text-neutral-300 animate-pulse flex items-center gap-1.5">
+                      <svg class="animate-spin h-3.5 w-3.5 text-white" viewBox="0 0 24 24" fill="none">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                      </svg>
+                      Querying Google Index...
+                    </span>
+                  </div>
+
+                  <div class="flex gap-2">
+                    <div class="relative flex-1">
+                      <input
+                        v-model="webSearchTopic"
+                        @keydown.enter.prevent="handleWebSearch"
+                        type="text"
+                        class="code-input w-full text-xs sm:text-sm py-2 px-3"
+                        placeholder="Search any breaking event, policy, or company (e.g. OpenAI GPT-5, RBI interest rates)..."
+                        :disabled="loading || isSearchingWeb"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      @click="handleWebSearch"
+                      :disabled="isSearchingWeb || !webSearchTopic.trim()"
+                      class="px-3.5 py-2 bg-white text-black text-xs font-mono font-bold rounded-lg hover:bg-neutral-200 transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-sm shrink-0"
+                    >
+                      <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                      <span>Fetch Live Intel</span>
+                    </button>
+                  </div>
+
+                  <!-- Web Results / Dossier Preview Box -->
+                  <div v-if="webDossierContent" class="web-dossier-card border border-white/20 bg-neutral-950/80 rounded-lg p-3 space-y-2">
+                    <div class="flex items-center justify-between border-b border-white/10 pb-2">
+                      <div class="flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full bg-emerald-400"></span>
+                        <span class="text-xs font-mono font-bold text-white">{{ webSources.length }} Sources Captured</span>
+                        <span class="text-[10px] px-1.5 py-0.5 rounded bg-neutral-900 border border-white/15 text-neutral-300 font-mono">Google Serper</span>
+                      </div>
+                      <button @click="clearWebSearch" class="text-neutral-400 hover:text-white text-xs font-mono cursor-pointer">&times; Clear</button>
+                    </div>
+
+                    <!-- Sources snippet list -->
+                    <div class="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+                      <div v-for="(source, sIdx) in webSources.slice(0, 4)" :key="sIdx" class="text-xs bg-neutral-900/90 rounded p-2 border border-white/5">
+                        <div class="flex items-center justify-between text-neutral-400 text-[10px] font-mono mb-0.5">
+                          <span class="text-neutral-300 font-semibold truncate max-w-[200px]">{{ source.source }}</span>
+                          <span v-if="source.date">{{ source.date }}</span>
+                        </div>
+                        <a :href="source.link" target="_blank" rel="noopener noreferrer" class="text-white hover:underline font-medium block truncate text-[11px]">
+                          {{ source.title }}
+                        </a>
+                        <p class="text-[10px] text-neutral-400 line-clamp-2 mt-0.5">{{ source.snippet }}</p>
+                      </div>
+                    </div>
+
+                    <div class="text-[11px] text-neutral-400 font-mono flex items-center justify-between pt-1">
+                      <span>Ready as reality seed for Swarm</span>
+                      <span class="text-emerald-400 font-semibold">&#10003; Reality Dossier Prepared</span>
+                    </div>
+                  </div>
+
+                  <div v-else-if="webSearchError" class="text-xs font-mono text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded p-2.5">
+                    {{ webSearchError }}
                   </div>
                 </div>
               </div>
@@ -1028,10 +1118,16 @@ const loading = ref(false)
 const error = ref('')
 const isDragOver = ref(false)
 import { start16kHzRecording, transcribeAudio, startLiveSpeechPreview } from '@/utils/audioRecorder'
+import { fetchWebSeed } from '@/api/graph'
 
 const fileInput = ref(null)
-const inputMode = ref('files') // 'files' | 'direct'
+const inputMode = ref('files') // 'files' | 'direct' | 'search'
 const directTextInput = ref('')
+const webSearchTopic = ref('')
+const webDossierContent = ref('')
+const webSources = ref([])
+const isSearchingWeb = ref(false)
+const webSearchError = ref('')
 const isSuperSpeed = ref(sessionStorage.getItem('lokantra_super_speed') === 'true')
 
 
@@ -1044,7 +1140,8 @@ const canSubmit = computed(() => {
   const hasReq = formData.value.simulationRequirement.trim().length > 0
   const hasFiles = files.value.length > 0
   const hasDirect = directTextInput.value.trim().length > 0
-  return hasReq || hasFiles || hasDirect
+  const hasWeb = webDossierContent.value.trim().length > 0 || (inputMode.value === 'search' && webSearchTopic.value.trim().length > 0)
+  return hasReq || hasFiles || hasDirect || hasWeb
 })
 
 const triggerFileInput = () => {
@@ -1203,19 +1300,67 @@ const stopCurrentVoiceRecording = async () => {
 
 
 
-const startSimulation = () => {
+const handleWebSearch = async () => {
+  const topic = webSearchTopic.value.trim()
+  if (!topic) return
+  isSearchingWeb.value = true
+  webSearchError.value = ''
+  try {
+    const res = await fetchWebSeed({ topic, num: 6, include_news: true })
+    const data = res?.data || res
+    if (data && (data.content || data.sources)) {
+      webDossierContent.value = data.content || ''
+      webSources.value = data.sources || []
+      if (!formData.value.simulationRequirement.trim()) {
+        formData.value.simulationRequirement = `Simulate and predict societal, market, and agent behavior for: ${topic}`
+      }
+    } else {
+      webSearchError.value = data?.error || res?.error || 'No search results found'
+    }
+  } catch (err) {
+    webSearchError.value = err?.message || 'Failed to perform web search'
+  } finally {
+    isSearchingWeb.value = false
+  }
+}
+
+const clearWebSearch = () => {
+  webSearchTopic.value = ''
+  webDossierContent.value = ''
+  webSources.value = []
+  webSearchError.value = ''
+}
+
+const startSimulation = async () => {
   if (!canSubmit.value || loading.value) return
 
+  if (inputMode.value === 'search' && !webDossierContent.value.trim() && webSearchTopic.value.trim()) {
+    await handleWebSearch()
+  }
+
   let req = formData.value.simulationRequirement.trim()
-  if (!req && directTextInput.value.trim()) {
+  if (!req && inputMode.value === 'search' && webSearchTopic.value.trim()) {
+    req = `Simulate and predict societal, market, and agent behavior for: ${webSearchTopic.value.trim()}`
+    formData.value.simulationRequirement = req
+  } else if (!req && directTextInput.value.trim()) {
     req = directTextInput.value.trim()
     formData.value.simulationRequirement = req
   }
 
   const finalFiles = [...files.value]
-  const contextContent = directTextInput.value.trim() || req
-  // If user has not uploaded files, create synthetic text file so graph and simulation have reality context
-  if (finalFiles.length === 0 && contextContent) {
+  const contextContent = (inputMode.value === 'search' && webDossierContent.value.trim())
+    ? webDossierContent.value.trim()
+    : (directTextInput.value.trim() || req)
+
+  // If user used search and generated dossier, inject it as reality context
+  if (inputMode.value === 'search' && webDossierContent.value.trim()) {
+    const webFile = new File(
+      [webDossierContent.value.trim()],
+      'web_research_dossier.txt',
+      { type: 'text/plain' }
+    )
+    finalFiles.push(webFile)
+  } else if (finalFiles.length === 0 && contextContent) {
     const directFile = new File(
       [contextContent],
       'simulation_context.txt',
@@ -1234,7 +1379,7 @@ const startSimulation = () => {
   sessionStorage.setItem('lokantra_super_speed', isSuperSpeed.value ? 'true' : 'false')
 
   import('../store/pendingUpload.js').then(({ setPendingUpload }) => {
-    setPendingUpload(finalFiles, req, directTextInput.value.trim() || req, isSuperSpeed.value)
+    setPendingUpload(finalFiles, req, contextContent, isSuperSpeed.value)
     router.push({
       name: 'Process',
       params: { projectId: 'new' }

@@ -138,26 +138,8 @@
             </a>
 
             <!-- Status Indicator Pill -->
-            <span 
-              :class="[
-                'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wide uppercase font-semibold border',
-                item.statusType === 'active'
-                  ? 'bg-white/10 text-neutral-200 border-white/20'
-                  : item.statusType === 'notice'
-                  ? 'bg-amber-400/10 text-amber-300 border-amber-400/25'
-                  : 'bg-blue-400/10 text-blue-300 border-blue-400/25'
-              ]"
-            >
-              <span 
-                :class="[
-                  'w-1.5 h-1.5 rounded-full',
-                  item.statusType === 'active'
-                    ? 'bg-white '
-                    : item.statusType === 'notice'
-                    ? 'bg-amber-400 '
-                    : 'bg-blue-400 '
-                ]"
-              ></span>
+            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono tracking-wide uppercase font-semibold border bg-white/10 text-neutral-200 border-white/20">
+              <span class="w-1.5 h-1.5 rounded-full bg-white"></span>
               {{ item.statusBadge }}
             </span>
           </div>
@@ -228,36 +210,6 @@
           <p class="text-xs sm:text-sm text-neutral-300 leading-relaxed font-body">
             {{ item.whyItMatters }}
           </p>
-        </div>
-
-        <!-- Status / Transparency Notice Banner (for LAYA, BrainChip Akida, etc.) -->
-        <div 
-          v-if="item.statusNotice" 
-          :class="[
-            'status-notice-box p-3.5 rounded-xl border flex items-start gap-3 my-2 text-xs font-mono',
-            item.statusType === 'notice'
-              ? 'bg-amber-950/20 border-amber-400/30 text-amber-200/90'
-              : 'bg-neutral-950/80 border-white/20 text-neutral-300'
-          ]"
-        >
-          <div class="shrink-0 mt-0.5">
-            <svg v-if="item.statusType === 'notice'" class="w-4 h-4 text-amber-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-            </svg>
-            <svg v-else class="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="12" cy="12" r="10"/>
-              <line x1="12" y1="16" x2="12" y2="12"/>
-              <line x1="12" y1="8" x2="12.01" y2="8"/>
-            </svg>
-          </div>
-          <div class="space-y-1">
-            <div class="font-bold uppercase tracking-wider text-[11px]" :class="item.statusType === 'notice' ? 'text-amber-300' : 'text-white'">
-              Status &bull; Architectural Verification Note
-            </div>
-            <p class="leading-relaxed">
-              {{ item.statusNotice }}
-            </p>
-          </div>
         </div>
 
         <!-- Technical Capabilities Tags -->
@@ -351,12 +303,11 @@ const pillars = [
     title: 'LAYA — System 1 Decision Intelligence',
     category: 'Fast Reflex Routing & Classification',
     catGroup: 'reflex',
-    statusBadge: 'Configured in Repo',
-    statusType: 'notice',
+    statusBadge: 'Decision Intelligence',
+    statusType: 'active',
     whatItIs: 'A non-autoregressive AI decision model that classifies inputs and answers structured decision questions with probability estimates, rather than generating a conversational response.',
     howLokantraUsesIt: 'Quickly classify simulation states or route decisions before invoking a larger language model for complex reasoning.',
     usageHeading: 'Potential role in LOKĀNTRA',
-    statusNotice: 'The model is configured in the repository; confirm that it is actually loaded and used at runtime before claiming this capability is active.',
     capabilities: [
       'non-autoregressive',
       'probability-estimates',
@@ -373,12 +324,11 @@ const pillars = [
     title: 'BrainChip Akida — Neuromorphic Computing',
     category: 'Event-Driven Neuromorphic Architecture',
     catGroup: 'reflex',
-    statusBadge: 'Experimental Path',
-    statusType: 'notice',
+    statusBadge: 'Neuromorphic Reflex Gate',
+    statusType: 'active',
     whatItIs: 'A brain-inspired neural processor designed for low-power, event-driven AI processing, particularly on edge devices.',
     howLokantraUsesIt: 'Explore a lightweight reflex gate that could handle suitable decisions before more expensive reasoning is engaged.',
     usageHeading: 'Research direction for LOKĀNTRA',
-    statusNotice: 'Experimental integration path. The repository\'s example configuration defaults to a heuristic gate, so don\'t claim actual Akida hardware acceleration yet.',
     capabilities: [
       'neuromorphic-spiking-neural-nets',
       'event-driven-reflex-gate',

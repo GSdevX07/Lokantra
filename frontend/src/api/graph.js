@@ -64,3 +64,29 @@ export function getProject(projectId) {
     method: 'get'
   })
 }
+
+/**
+ * Execute live web search via Serper API
+ * @param {Object} data - { query, num, search_type }
+ * @returns {Promise}
+ */
+export function searchWeb(data) {
+  return service({
+    url: '/api/graph/web-search',
+    method: 'post',
+    data
+  })
+}
+
+/**
+ * Generate a reality seed dossier from live Google search and news
+ * @param {Object} data - { topic, num, include_news }
+ * @returns {Promise}
+ */
+export function fetchWebSeed(data) {
+  return service({
+    url: '/api/graph/seed/web-search',
+    method: 'post',
+    data
+  })
+}

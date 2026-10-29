@@ -73,6 +73,9 @@ class Config:
     SARVAM_API_URL = os.environ.get('SARVAM_API_URL', 'https://api.sarvam.ai/speech-to-text')
     SARVAM_MODEL = os.environ.get('SARVAM_MODEL', 'saaras:v4')
     
+    # Web Search configuration (Serper API)
+    SERPER_API_KEY = os.environ.get('SERPER_API_KEY') or os.environ.get('SERVE_API_KEY') or os.environ.get('SERP_API_KEY') or ''
+    
     # Text processing configuration
     DEFAULT_CHUNK_SIZE = 500  # Default chunk size
     DEFAULT_CHUNK_OVERLAP = 50  # Default overlap size
