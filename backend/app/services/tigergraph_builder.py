@@ -476,13 +476,30 @@ Output STRICT JSON ONLY matching:
   ]
 }}"""
         try:
-            resp = self.llm.chat([{"role": "user", "content": prompt}], json_mode=True)
-            cleaned = re.sub(r'<think>[\s\S]*?</think>', '', resp).strip()
-            cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned, flags=re.IGNORECASE)
-            cleaned = re.sub(r'\n?```\s*$', '', cleaned)
-            return json.loads(cleaned)
+            data = self.llm.chat_json([{"role": "user", "content": prompt}], temperature=0.1)
+            if isinstance(data, dict):
+                entities = data.get("entities", [])
+                relationships = data.get("relationships", [])
+                return {
+                    "entities": entities if isinstance(entities, list) else [],
+                    "relationships": relationships if isinstance(relationships, list) else []
+                }
+            return {"entities": [], "relationships": []}
         except Exception as e:
-            logger.warning(f"LLM extraction fallback on chunk: {e}")
+            logger.warning(f"LLM extraction chat_json fallback on chunk: {e}")
+            try:
+                resp = self.llm.chat([{"role": "user", "content": prompt}])
+                cleaned = re.sub(r'<think>[\s\S]*?</think>', '', resp).strip()
+                cleaned = re.sub(r'^```(?:json)?\s*\n?', '', cleaned, flags=re.IGNORECASE)
+                cleaned = re.sub(r'\n?```\s*$', '', cleaned)
+                parsed = json.loads(cleaned)
+                if isinstance(parsed, dict):
+                    return {
+                        "entities": parsed.get("entities", []) if isinstance(parsed.get("entities"), list) else [],
+                        "relationships": parsed.get("relationships", []) if isinstance(parsed.get("relationships"), list) else []
+                    }
+            except Exception as e2:
+                logger.warning(f"Secondary LLM fallback failed: {e2}")
             return {"entities": [], "relationships": []}
 
     def _get_graph_info(self, graph_id: str) -> GraphInfo:
