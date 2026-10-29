@@ -1,0 +1,44 @@
+name: Auto Deploy to Azure VM
+
+on:
+  push:
+    branches:
+      - master
+      - main
+
+jobs:
+  deploy:
+    name: Deploy to Azure Server
+    runs-on: ubuntu-latest
+    steps:
+      - name: SSH and Deploy to Azure VM
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.AZURE_VM_HOST }}
+          username: ${{ secrets.AZURE_VM_USERNAME }}
+          key: ${{ secrets.AZURE_SSH_KEY }}
+          password: ${{ secrets.AZURE_VM_PASSWORD }}
+          port: 22
+          script: |
+            # Source environment
+            export PATH="$HOME/.local/bin:/usr/local/bin:/usr/bin:$PATH"
+            source $HOME/.bashrc 2>/dev/null || true
+
+            echo "=== Pulling latest changes from GitHub ==="
+            cd /home/Lokantra/Lokantra
+            git pull
+
+            echo "=== Syncing Backend dependencies with uv ==="
+            cd /home/Lokantra/Lokantra/backend
+            uv sync
+
+            echo "=== Installing Frontend dependencies ==="
+            cd /home/Lokantra/Lokantra
+            npm install
+            cd frontend
+            npm install
+
+            echo "=== Restarting all PM2 services ==="
+            pm2 restart all
+
+            echo "=== Deployment Succeeded! ==="

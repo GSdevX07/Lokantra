@@ -790,7 +790,7 @@ onUnmounted(() => {
   border-radius: 4px;
 }
 
-/* Windows 11 style Window Controls (—, □, ✕) */
+/* Windows 11 style Window Controls (, □, ✕) */
 .win-controls {
   display: flex;
   height: 100%;

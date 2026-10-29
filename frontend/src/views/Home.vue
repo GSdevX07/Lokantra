@@ -355,7 +355,7 @@
                 {{ 
                   activeModal === 'console' ? 'Simulation Console' :
                   activeModal === 'authRequired' ? 'Authentication Required' :
-                  activeModal === 'different' ? 'Why Are We Different? — Core Intelligence' :
+                  activeModal === 'different' ? 'Why Are We Different?  Core Intelligence' :
                   activeModal === 'workflow' ? 'Swarm Workflow Architecture' :
                   activeModal === 'history' ? 'Simulation History Database' :
                   'System Status & Architecture'
@@ -1239,7 +1239,7 @@ const startVoiceRecording = async (target = 'prompt') => {
     })
   } catch (err) {
     isRecordingVoice.value = false
-    voiceFeedbackMessage.value = "Sorry bro, couldn't access mic — check permissions & try again?"
+    voiceFeedbackMessage.value = "Sorry bro, couldn't access mic  check permissions & try again?"
     console.error('Voice recording error:', err)
   }
 }
@@ -1274,7 +1274,7 @@ const stopCurrentVoiceRecording = async () => {
         transcribedText = fallbackText.trim()
         voiceFeedbackMessage.value = 'Transcribed ✓'
       } else {
-        voiceFeedbackMessage.value = "Sorry bro, didn't catch that — speak again?"
+        voiceFeedbackMessage.value = "Sorry bro, didn't catch that  speak again?"
       }
       setTimeout(() => { voiceFeedbackMessage.value = '' }, 4000)
     }
@@ -1290,7 +1290,7 @@ const stopCurrentVoiceRecording = async () => {
     }
   } catch (err) {
     console.error('Voice stop error:', err)
-    voiceFeedbackMessage.value = "Sorry bro, didn't catch that — speak again?"
+    voiceFeedbackMessage.value = "Sorry bro, didn't catch that  speak again?"
   } finally {
     voiceProcessing.value = false
     activeRecorderInstance = null
