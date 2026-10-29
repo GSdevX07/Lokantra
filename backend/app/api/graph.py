@@ -298,19 +298,24 @@ def generate_ontology():
         simulation_requirement = request.form.get('simulation_requirement', '')
         project_name = request.form.get('project_name', 'Unnamed Project')
         additional_context = request.form.get('additional_context', '')
+        direct_text = request.form.get('direct_text', '').strip() or request.form.get('raw_text', '').strip()
         
         logger.debug(f"Project name: {project_name}")
         logger.debug(f"Simulation requirement: {simulation_requirement[:100]}...")
         
-        if not simulation_requirement:
+        if not simulation_requirement and not direct_text:
             return jsonify({
                 "success": False,
                 "error": t('api.requireSimulationRequirement')
             }), 400
+        if not simulation_requirement and direct_text:
+            simulation_requirement = direct_text[:120] + ("..." if len(direct_text) > 120 else "")
         
         # Get uploaded files
         uploaded_files = request.files.getlist('files')
-        if not uploaded_files or all(not f.filename for f in uploaded_files):
+        valid_files = [f for f in uploaded_files if f and f.filename and allowed_file(f.filename)]
+        
+        if not valid_files and not direct_text and not simulation_requirement.strip():
             return jsonify({
                 "success": False,
                 "error": t('api.requireFileUpload')
@@ -325,24 +330,54 @@ def generate_ontology():
         document_texts = []
         all_text = ""
         
-        for file in uploaded_files:
-            if file and file.filename and allowed_file(file.filename):
-                # Save files to project directory
-                file_info = ProjectManager.save_file_to_project(
-                    project.project_id, 
-                    file, 
-                    file.filename
-                )
-                project.files.append({
-                    "filename": file_info["original_filename"],
-                    "size": file_info["size"]
-                })
-                
-                # Extract text
+        # If direct text was typed into the console, save as a direct input document
+        if direct_text:
+            text_info = ProjectManager.save_text_to_project(
+                project.project_id,
+                direct_text,
+                "direct_scenario_input.txt"
+            )
+            project.files.append({
+                "filename": text_info["original_filename"],
+                "size": text_info["size"]
+            })
+            cleaned_text = TextProcessor.preprocess_text(direct_text)
+            document_texts.append(cleaned_text)
+            all_text += f"\n\n=== {text_info['original_filename']} ===\n{cleaned_text}"
+        elif not valid_files and simulation_requirement:
+            # If no files or direct text provided, use simulation_requirement as reality seed document
+            text_info = ProjectManager.save_text_to_project(
+                project.project_id,
+                simulation_requirement,
+                "simulation_context.txt"
+            )
+            project.files.append({
+                "filename": text_info["original_filename"],
+                "size": text_info["size"]
+            })
+            cleaned_text = TextProcessor.preprocess_text(simulation_requirement)
+            document_texts.append(cleaned_text)
+            all_text += f"\n\n=== {text_info['original_filename']} ===\n{cleaned_text}"
+
+        for file in valid_files:
+            file_info = ProjectManager.save_file_to_project(
+                project.project_id, 
+                file, 
+                file.filename
+            )
+            project.files.append({
+                "filename": file_info["original_filename"],
+                "size": file_info["size"]
+            })
+            
+            # Extract text
+            try:
                 text = FileParser.extract_text(file_info["path"])
                 text = TextProcessor.preprocess_text(text)
                 document_texts.append(text)
                 all_text += f"\n\n=== {file_info['original_filename']} ===\n{text}"
+            except Exception as extract_err:
+                logger.error(f"Failed to extract text from {file.filename}: {extract_err}")
         
         if not document_texts:
             ProjectManager.delete_project(project.project_id)

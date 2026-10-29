@@ -87,6 +87,23 @@
           </button>
 
           <button
+            @click="openConsoleWithMic"
+            class="venom-pill-btn-secondary !border-red-500/50 hover:!border-red-400 !bg-red-950/40 hover:!bg-red-900/50 text-red-200 hover:text-white flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(239,68,68,0.25)]"
+            title="Click to dictate your policy idea using Sarvam AI"
+          >
+            <span class="relative flex h-2 w-2">
+              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+            </span>
+            <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+              <line x1="12" x2="12" y1="19" y2="22"/>
+            </svg>
+            <span>🎙️ Speak Idea (Sarvam AI)</span>
+          </button>
+
+          <button
             @click="activeModal = 'workflow'"
             class="venom-pill-btn-secondary"
           >
@@ -423,47 +440,172 @@
                   Note: Supabase credentials not detected in .env file.
                 </p>
 
-                <button
-                  @click="activeModal = null"
-                  type="button"
-                  class="w-full py-2 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
-                >
-                  I&rsquo;ll just look around
-                </button>
+                <div class="flex items-center gap-2 pt-1">
+                  <button
+                    @click="activeModal = 'console'"
+                    type="button"
+                    class="flex-1 py-2 px-3 rounded-full text-xs font-semibold bg-white/10 hover:bg-white/20 text-neutral-200 border border-white/15 transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                  >
+                    <span>Try Console as Guest</span>
+                    <span>&rarr;</span>
+                  </button>
+                  <button
+                    @click="activeModal = null"
+                    type="button"
+                    class="py-2 px-3 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
             </div>
 
             <!-- Modal Content 1: Simulation Console -->
-            <div v-if="activeModal === 'console'" class="console-box">
-              <!-- Unauthenticated Warning Banner -->
-              <div v-if="!isAuthenticated" class="mb-5 p-4 rounded-2xl bg-[#0d0d0d]/90 border border-white/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
+            <div v-if="activeModal === 'console'" class="console-box space-y-5">
+              <!-- Guest Info Banner (Non-blocking) -->
+              <div v-if="!isAuthenticated" class="p-3.5 rounded-2xl bg-[#0d0d0d]/90 border border-white/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
                 <div class="flex items-center gap-3 text-left">
                   <img
                     src="../assets/icons/white_hand.png"
-                    alt="Stop"
+                    alt="Guest Mode"
                     class="w-5 h-5 object-contain select-none shrink-0 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
                   />
-                  <span class="text-xs sm:text-sm font-semibold text-neutral-200">&ldquo;Uhhhh bro at least sign in first, we&rsquo;re trying to count you&rdquo;</span>
+                  <div>
+                    <span class="text-xs sm:text-sm font-semibold text-neutral-200">✨ Guest Demo Mode Active</span>
+                    <span class="block text-[11px] text-neutral-400">Type or speak any idea below to simulate freely. Sign in anytime to persist project history to cloud!</span>
+                  </div>
                 </div>
                 <button
                   @click="handleModalSignIn"
                   type="button"
                   :disabled="isSigningInModal"
-                  class="px-5 py-2 rounded-full bg-black border border-white/25 text-white font-bold text-xs hover:bg-[#0a0a0a] hover:border-white/40 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.8)] shrink-0 cursor-pointer flex items-center gap-1.5"
+                  class="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs transition-all shadow shrink-0 cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>Let me in</span>
+                  <span>Sign in with Google</span>
                   <span>&rarr;</span>
                 </button>
               </div>
-              <!-- Upload Area -->
-              <div class="console-section">
-                <div class="console-header">
-                  <span class="console-label">{{ $t('home.realitySeed') }}</span>
-                  <span class="console-meta">{{ $t('home.supportedFormats') }}</span>
+
+              <!-- STEP 1: IDEA / POLICY / SCENARIO INPUT (THE CORE REQUIREMENT) -->
+              <div class="console-section bg-gradient-to-b from-white/[0.05] to-transparent p-5 rounded-2xl border border-white/15 shadow-xl">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse"></span>
+                      <h3 class="text-base sm:text-lg font-bold text-white tracking-wide">
+                        1. Enter Your Policy, Idea, or Simulation Scenario
+                      </h3>
+                      <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                        Primary Input
+                      </span>
+                    </div>
+                    <p class="text-xs text-neutral-400 mt-1">
+                      Type your policy proposal, what-if question, or market hypothesis below, or click the mic to speak:
+                    </p>
+                  </div>
+
+                  <!-- SARVAM AI SPEECH-TO-TEXT BUTTON -->
+                  <button
+                    type="button"
+                    @click="toggleVoiceRecording('idea')"
+                    :class="[
+                      'px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-2.5 cursor-pointer shadow-lg select-none shrink-0',
+                      isRecordingVoice && activeVoiceTarget === 'idea'
+                        ? 'bg-red-600 text-white animate-pulse ring-4 ring-red-500/50 shadow-[0_0_24px_#ef4444]'
+                        : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white border border-red-400/50 hover:scale-[1.02]'
+                    ]"
+                    :title="isRecordingVoice ? 'Click to finish speaking' : 'Speak your policy idea using Sarvam AI Saaras model (Supports Indian languages & English)'"
+                  >
+                    <span class="relative flex h-2.5 w-2.5">
+                      <span v-if="isRecordingVoice && activeVoiceTarget === 'idea'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                      <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="isRecordingVoice && activeVoiceTarget === 'idea' ? 'bg-white' : 'bg-red-200'"></span>
+                    </span>
+                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                      <line x1="12" x2="12" y1="19" y2="22"/>
+                    </svg>
+                    <span>{{ isRecordingVoice && activeVoiceTarget === 'idea' ? `Listening (${recordingSeconds}s / 30s) • Stop` : '🎙️ Speak Idea (Sarvam AI)' }}</span>
+                  </button>
                 </div>
-                
+
+                <!-- Active Voice Recording Bar -->
+                <div v-if="isRecordingVoice && activeVoiceTarget === 'idea'" class="p-3.5 mb-3 rounded-xl bg-red-950/60 border border-red-500/60 flex items-center justify-between gap-3 text-xs font-mono text-red-100 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
+                  <div class="flex items-center gap-3">
+                    <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_12px_#ef4444] animate-ping"></span>
+                    <div>
+                      <span class="font-bold text-white">Recording audio for Sarvam AI Saaras Engine ({{ recordingSeconds }}s / 30s)...</span>
+                      <span class="block text-[11px] text-red-300">Speak clearly in English, Hindi, or any Indian regional language</span>
+                      <span v-if="livePreviewText" class="block text-[11px] text-amber-200 italic mt-0.5">&ldquo;{{ livePreviewText }}&rdquo;</span>
+                    </div>
+                  </div>
+                  <button @click="stopCurrentVoiceRecording" class="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold cursor-pointer shadow">
+                    Finish & Transcribe &rarr;
+                  </button>
+                </div>
+
+                <!-- Processing State -->
+                <div v-else-if="voiceProcessing" class="p-3 mb-3 rounded-xl bg-amber-950/40 border border-amber-500/40 flex items-center gap-3 text-xs font-mono text-amber-200">
+                  <span class="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
+                  <span>Transcribing with Sarvam AI Saaras Neural Engine... Please wait</span>
+                </div>
+
+                <!-- Success Feedback -->
+                <div v-else-if="voiceFeedbackMessage" class="p-2.5 mb-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-between text-xs font-mono text-emerald-300">
+                  <span>{{ voiceFeedbackMessage }}</span>
+                  <button @click="voiceFeedbackMessage = ''" class="text-neutral-400 hover:text-white">&times;</button>
+                </div>
+
+                <!-- Idea Textarea -->
+                <div class="input-wrapper relative">
+                  <textarea
+                    ref="ideaInputRef"
+                    v-model="formData.simulationRequirement"
+                    class="code-input !min-h-[140px] text-sm leading-relaxed"
+                    placeholder="Type or speak your simulation idea here... Example:
+• 'Predict public reaction and business disruption if 28% GST is implemented on online gaming'
+• 'Simulate multi-agent social consensus on mandatory EV conversion for delivery fleets in Bengaluru'
+• 'What happens if a new national policy mandates open-weight AI model registration?'"
+                    rows="5"
+                    :disabled="loading"
+                  ></textarea>
+                  
+                  <div class="flex items-center justify-between mt-2 px-1 text-[11px] text-neutral-400 font-mono">
+                    <span v-if="formData.simulationRequirement.trim()" class="text-emerald-400 font-semibold flex items-center gap-1">
+                      <span>✓</span> Idea ready to simulate ({{ formData.simulationRequirement.length }} chars)
+                    </span>
+                    <span v-else class="text-neutral-500">
+                      * Type your idea above or click '🎙️ Speak Idea' to speak
+                    </span>
+                    <span class="text-neutral-400">Powered by Sarvam AI Saaras</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- STEP 2: SUPPORTING DOCUMENTS & FILES (OPTIONAL) -->
+              <div class="console-section p-4 rounded-2xl bg-white/[0.02] border border-white/10">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
+                  <div class="flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-neutral-400"></span>
+                    <h4 class="text-xs sm:text-sm font-bold text-neutral-200 tracking-wide">
+                      2. Attach Supporting Documents & Data (Optional)
+                    </h4>
+                    <span class="px-2 py-0.5 rounded text-[10px] font-mono text-neutral-400 bg-white/5 border border-white/10">
+                      Optional
+                    </span>
+                  </div>
+                  <span class="text-[11px] text-neutral-400 font-mono">
+                    PDF, Word, Excel, CSV, JSON, Images, TXT
+                  </span>
+                </div>
+
+                <p class="text-xs text-neutral-400 mb-2">
+                  Your idea typed above is already 100% sufficient to run! Upload documents only if you have specific policy whitepapers, reports, or spreadsheets to inject.
+                </p>
+
+                <!-- Upload Drop Zone -->
                 <div 
-                  class="upload-zone"
+                  class="upload-zone !min-h-[100px] !p-4"
                   :class="{ 'drag-over': isDragOver, 'has-files': files.length > 0 }"
                   @dragover.prevent="handleDragOver"
                   @dragleave.prevent="handleDragLeave"
@@ -474,69 +616,53 @@
                     ref="fileInput"
                     type="file"
                     multiple
-                    accept=".pdf,.md,.txt"
+                    accept=".pdf,.docx,.doc,.txt,.md,.markdown,.rtf,.xlsx,.xls,.csv,.tsv,.json,.yaml,.yml,.xml,.html,.png,.jpg,.jpeg,.webp,.bmp,.svg,.py,.js,.ts,.sql"
                     @change="handleFileSelect"
                     style="display: none"
                     :disabled="loading"
                   />
                   
-                  <div v-if="files.length === 0" class="upload-placeholder">
-                    <div class="upload-icon">&uarr;</div>
-                    <div class="upload-title">{{ $t('home.dragToUpload') }}</div>
-                    <div class="upload-hint">{{ $t('home.orBrowse') }}</div>
+                  <div v-if="files.length === 0" class="upload-placeholder p-2 flex items-center justify-center gap-3">
+                    <div class="upload-icon text-lg">&uarr;</div>
+                    <div class="text-left">
+                      <div class="upload-title text-xs font-semibold">{{ $t('home.dragToUpload') }}</div>
+                      <div class="upload-hint text-[11px] text-neutral-400">Click to browse or drop PDF, Excel, Word, or images</div>
+                    </div>
                   </div>
                   
                   <div v-else class="file-list">
                     <div v-for="(file, index) in files" :key="index" class="file-item">
-                      <span class="file-icon">&#128196;</span>
-                      <span class="file-name">{{ file.name }}</span>
-                      <button @click.stop="removeFile(index)" class="remove-btn">&times;</button>
+                      <span :class="['format-tag', getFileBadgeClass(file.name)]">{{ getFileBadgeLabel(file.name) }}</span>
+                      <span class="file-name truncate">{{ file.name }}</span>
+                      <span class="text-[11px] text-neutral-400 font-mono mr-2">{{ formatFileSize(file.size) }}</span>
+                      <button @click.stop="removeFile(index)" class="remove-btn" title="Remove">&times;</button>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <!-- Divider -->
-              <div class="console-divider">
-                <span>{{ $t('home.inputParams') }}</span>
-              </div>
-
-              <!-- Input Area -->
-              <div class="console-section">
-                <div class="console-header">
-                  <span class="console-label">{{ $t('home.simulationPrompt') }}</span>
-                </div>
-                <div class="input-wrapper">
-                  <textarea
-                    v-model="formData.simulationRequirement"
-                    class="code-input"
-                    :placeholder="$t('home.promptPlaceholder')"
-                    rows="5"
-                    :disabled="loading"
-                  ></textarea>
-                  <div class="model-badge">{{ $t('home.engineBadge') }}</div>
-                </div>
-              </div>
-
-              <!-- Start Button -->
-              <div class="console-section btn-section flex flex-col gap-3">
+              <!-- STEP 3: LAUNCH ENGINE BUTTON -->
+              <div class="console-section btn-section flex flex-col gap-3 pt-2">
                 <button 
-                  class="start-engine-btn"
+                  class="start-engine-btn !py-4"
                   @click="startSimulation"
                   :disabled="!canSubmit || loading"
                 >
-                  <span v-if="!loading">{{ $t('home.startEngine') }}</span>
+                  <span v-if="!loading" class="flex items-center justify-center gap-2 text-base font-bold">
+                    <span>🚀</span>
+                    <span>{{ $t('home.startEngine') }}</span>
+                  </span>
                   <span v-else>{{ $t('home.initializing') }}</span>
                   <span class="btn-arrow">&rarr;</span>
                 </button>
 
                 <button 
-                  v-if="!files.length"
+                  v-if="!files.length && !formData.simulationRequirement.trim()"
                   type="button"
                   class="quick-demo-btn"
                   @click="quickDemoSimulation"
                 >
-                  <span>⚡ Quick Demo: Launch Venom Reality Seed</span>
+                  <span>✨ Don't have an idea? Click for Instant One-Click Demo Idea</span>
                 </button>
               </div>
             </div>
@@ -677,11 +803,14 @@ const isSigningInModal = ref(false)
 const authModalError = ref('')
 
 const handleStartSimulationClick = () => {
-  if (!isAuthenticated.value) {
-    activeModal.value = 'authRequired'
-    return
-  }
   activeModal.value = 'console'
+}
+
+const openConsoleWithMic = () => {
+  activeModal.value = 'console'
+  setTimeout(() => {
+    toggleVoiceRecording('idea')
+  }, 350)
 }
 
 const handleModalSignIn = async () => {
@@ -780,10 +909,34 @@ const files = ref([])
 const loading = ref(false)
 const error = ref('')
 const isDragOver = ref(false)
+import { start16kHzRecording, transcribeWithSarvam, startLiveSpeechPreview } from '@/utils/audioRecorder'
+
 const fileInput = ref(null)
+const inputMode = ref('files') // 'files' | 'direct'
+const directTextInput = ref('')
+
+// Voice STT state
+const isRecordingVoice = ref(false)
+const activeVoiceTarget = ref('prompt') // 'prompt' | 'direct'
+const voiceProcessing = ref(false)
+const voiceFeedbackMessage = ref('')
+let activeRecorderInstance = null
+let activeSpeechPreview = null
+let livePreviewText = ''
+
+const ALL_SUPPORTED_EXTS = [
+  'pdf', 'docx', 'doc', 'txt', 'md', 'markdown', 'rtf',
+  'xlsx', 'xls', 'csv', 'tsv',
+  'json', 'jsonl', 'xml', 'html', 'htm', 'yaml', 'yml',
+  'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'svg',
+  'py', 'js', 'ts', 'sql', 'sh'
+]
 
 const canSubmit = computed(() => {
-  return formData.value.simulationRequirement.trim() !== '' && files.value.length > 0
+  const hasReq = formData.value.simulationRequirement.trim().length > 0
+  const hasFiles = files.value.length > 0
+  const hasDirect = directTextInput.value.trim().length > 0
+  return hasReq || hasFiles || hasDirect
 })
 
 const triggerFileInput = () => {
@@ -816,14 +969,143 @@ const handleDrop = (e) => {
 
 const addFiles = (newFiles) => {
   const validFiles = newFiles.filter(file => {
-    const ext = file.name.split('.').pop().toLowerCase()
-    return ['pdf', 'md', 'txt'].includes(ext)
+    const ext = file.name.split('.').pop()?.toLowerCase() || ''
+    return ALL_SUPPORTED_EXTS.includes(ext)
   })
   files.value.push(...validFiles)
 }
 
 const removeFile = (index) => {
   files.value.splice(index, 1)
+}
+
+const getFileBadgeLabel = (filename) => {
+  const ext = filename?.split('.').pop()?.toLowerCase() || ''
+  if (['png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg', 'tiff'].includes(ext)) return 'IMAGE'
+  if (['xlsx', 'xls', 'csv', 'tsv'].includes(ext)) return 'DATA'
+  if (['docx', 'doc'].includes(ext)) return 'DOC'
+  if (['pdf'].includes(ext)) return 'PDF'
+  if (['json', 'yaml', 'yml', 'xml'].includes(ext)) return 'JSON'
+  if (['py', 'js', 'ts', 'sql', 'sh'].includes(ext)) return 'CODE'
+  return ext.toUpperCase() || 'FILE'
+}
+
+const getFileBadgeClass = (filename) => {
+  const ext = filename?.split('.').pop()?.toLowerCase() || ''
+  if (['png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg'].includes(ext)) return 'badge-image'
+  if (['xlsx', 'xls', 'csv', 'tsv'].includes(ext)) return 'badge-data'
+  if (['docx', 'doc'].includes(ext)) return 'badge-doc'
+  if (['pdf'].includes(ext)) return 'badge-pdf'
+  if (['json', 'yaml', 'yml', 'xml'].includes(ext)) return 'badge-json'
+  return 'badge-default'
+}
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return ''
+  if (bytes < 1024) return bytes + ' B'
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
+
+// Sarvam AI Saaras Voice STT logic
+const recordingSeconds = ref(0)
+let recordingTimer = null
+
+const toggleVoiceRecording = async (target = 'idea') => {
+  if (isRecordingVoice.value) {
+    await stopCurrentVoiceRecording()
+    return
+  }
+  startVoiceRecording(target)
+}
+
+const startVoiceRecording = async (target = 'idea') => {
+  try {
+    activeVoiceTarget.value = target
+    voiceFeedbackMessage.value = ''
+    livePreviewText = ''
+    recordingSeconds.value = 0
+    
+    activeRecorderInstance = await start16kHzRecording()
+    isRecordingVoice.value = true
+
+    if (recordingTimer) clearInterval(recordingTimer)
+    recordingTimer = setInterval(() => {
+      recordingSeconds.value++
+      if (recordingSeconds.value >= 29) {
+        stopCurrentVoiceRecording()
+      }
+    }, 1000)
+
+    // Also start live browser speech recognition for real-time visual feedback while recording
+    activeSpeechPreview = startLiveSpeechPreview((interimText) => {
+      livePreviewText = interimText
+    })
+  } catch (err) {
+    isRecordingVoice.value = false
+    if (recordingTimer) {
+      clearInterval(recordingTimer)
+      recordingTimer = null
+    }
+    voiceFeedbackMessage.value = err.message || 'Microphone access denied'
+    console.error('Voice recording error:', err)
+  }
+}
+
+const stopCurrentVoiceRecording = async () => {
+  if (recordingTimer) {
+    clearInterval(recordingTimer)
+    recordingTimer = null
+  }
+  if (!activeRecorderInstance) {
+    isRecordingVoice.value = false
+    return
+  }
+
+  isRecordingVoice.value = false
+  voiceProcessing.value = true
+  voiceFeedbackMessage.value = 'Transcribing with Sarvam AI Saaras Neural Engine...'
+
+  try {
+    if (activeSpeechPreview) {
+      activeSpeechPreview.stop()
+    }
+    const result = await activeRecorderInstance.stop()
+    activeRecorderInstance = null
+
+    // Call Sarvam AI backend endpoint
+    const res = await transcribeWithSarvam(result.base64, 'en-IN', 'transcribe')
+
+    let transcribedText = ''
+    if (res.success && res.text) {
+      transcribedText = res.text.trim()
+      const langNotice = res.detected_language ? ` (${res.detected_language})` : ''
+      voiceFeedbackMessage.value = `✓ Transcribed via Sarvam AI${langNotice}`
+      setTimeout(() => { voiceFeedbackMessage.value = '' }, 5000)
+    } else {
+      // If Sarvam failed, fall back to live browser speech recognition if captured
+      const fallbackText = livePreviewText || activeSpeechPreview?.getFinalText()
+      if (fallbackText && fallbackText.trim()) {
+        transcribedText = fallbackText.trim()
+        voiceFeedbackMessage.value = 'Transcribed (Browser STT fallback)'
+      } else {
+        voiceFeedbackMessage.value = res.error || 'Sarvam AI: transcription failed'
+      }
+      setTimeout(() => { voiceFeedbackMessage.value = '' }, 6000)
+    }
+
+    if (transcribedText) {
+      const current = formData.value.simulationRequirement.trim()
+      formData.value.simulationRequirement = current ? `${current} ${transcribedText}` : transcribedText
+    }
+  } catch (err) {
+    console.error('Voice stop error:', err)
+    voiceFeedbackMessage.value = 'Voice error: ' + err.message
+  } finally {
+    voiceProcessing.value = false
+    activeRecorderInstance = null
+    activeSpeechPreview = null
+  }
 }
 
 const quickDemoSimulation = () => {
@@ -839,14 +1121,35 @@ const quickDemoSimulation = () => {
 }
 
 const startSimulation = () => {
-  if (!isAuthenticated.value) {
-    activeModal.value = 'authRequired'
-    return
-  }
   if (!canSubmit.value || loading.value) return
+
+  let req = formData.value.simulationRequirement.trim()
+  if (!req && directTextInput.value.trim()) {
+    req = directTextInput.value.trim()
+    formData.value.simulationRequirement = req
+  }
+
+  const finalFiles = [...files.value]
+  const contextContent = directTextInput.value.trim() || req
+  // If user has not uploaded files, create synthetic text file so graph and simulation have reality context
+  if (finalFiles.length === 0 && contextContent) {
+    const directFile = new File(
+      [contextContent],
+      'simulation_context.txt',
+      { type: 'text/plain' }
+    )
+    finalFiles.push(directFile)
+  } else if (directTextInput.value.trim().length > 0) {
+    const directFile = new File(
+      [directTextInput.value.trim()],
+      'direct_scenario_input.txt',
+      { type: 'text/plain' }
+    )
+    finalFiles.push(directFile)
+  }
   
   import('../store/pendingUpload.js').then(({ setPendingUpload }) => {
-    setPendingUpload(files.value, formData.value.simulationRequirement)
+    setPendingUpload(finalFiles, req, directTextInput.value.trim() || req)
     router.push({
       name: 'Process',
       params: { projectId: 'new' }
@@ -1624,4 +1927,52 @@ onMounted(() => {
   transform: translateY(-1px);
 }
 
+
+/* Format badges in upload list */
+.format-tag {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.badge-image {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 1px solid rgba(168, 85, 247, 0.4);
+}
+
+.badge-data {
+  background: rgba(34, 197, 94, 0.2);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.4);
+}
+
+.badge-doc {
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+  border: 1px solid rgba(59, 130, 246, 0.4);
+}
+
+.badge-pdf {
+  background: rgba(239, 68, 68, 0.2);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+}
+
+.badge-json {
+  background: rgba(245, 158, 11, 0.2);
+  color: #fbbf24;
+  border: 1px solid rgba(245, 158, 11, 0.4);
+}
+
+.badge-default {
+  background: rgba(255, 255, 255, 0.1);
+  color: #e5e5e5;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
 </style>
