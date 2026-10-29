@@ -410,23 +410,57 @@ class TigerGraphToolsService:
     def get_simulation_context(
         self,
         graph_id: str,
+        simulation_requirement: str = "",
+        limit: int = 30,
         platform: Optional[str] = None,
-        round_num: Optional[int] = None
+        round_num: Optional[int] = None,
+        **kwargs
     ) -> Dict[str, Any]:
+        """Retrieve simulation context for report planning."""
+        query = simulation_requirement or "simulation summary"
+        search_result = self.search_graph(
+            graph_id=graph_id,
+            query=query,
+            limit=limit
+        )
         stats = self.get_graph_statistics(graph_id)
-        edges = self.get_all_edges(graph_id)
-        top_facts = [e.fact for e in edges[-15:] if e.fact]
+        all_nodes = self.get_all_nodes(graph_id)
+
+        entities = []
+        for node in all_nodes:
+            custom_labels = [l for l in node.labels if l not in ["Entity", "Node"]]
+            if custom_labels:
+                entities.append({
+                    "name": node.name,
+                    "type": custom_labels[0],
+                    "summary": node.summary
+                })
+
+        related_facts = search_result.facts if hasattr(search_result, "facts") else []
+
         return {
+            "simulation_requirement": simulation_requirement,
+            "related_facts": related_facts,
+            "graph_statistics": stats,
             "statistics": stats,
-            "recent_facts": top_facts,
+            "entities": entities[:limit],
+            "total_entities": len(entities),
+            "recent_facts": related_facts,
             "platform": platform,
             "round_num": round_num,
         }
 
-    def quick_search(self, graph_id: str, query: str, limit: int = 5) -> SearchResult:
+    def quick_search(self, graph_id: str, query: str, limit: int = 10, **kwargs) -> SearchResult:
         return self.search_graph(graph_id, query, limit=limit)
 
-    def panorama_search(self, graph_id: str, query: str, limit: int = 20) -> PanoramaResult:
+    def panorama_search(
+        self,
+        graph_id: str,
+        query: str,
+        limit: int = 20,
+        include_expired: bool = True,
+        **kwargs
+    ) -> PanoramaResult:
         all_edges = self.get_all_edges(graph_id)
         active_facts = [e.fact for e in all_edges if not e.is_invalid and not e.is_expired]
         invalid_facts = [e.fact for e in all_edges if e.is_invalid]
@@ -451,6 +485,7 @@ class TigerGraphToolsService:
         num_sub_queries: int = 3,
         facts_per_query: int = 5,
         report_context: Optional[str] = None,
+        **kwargs
     ) -> InsightForgeResult:
         """Deep multi-hop retrieval and synthesis."""
         sub_search = self.search_graph(graph_id, query, limit=facts_per_query)
@@ -475,29 +510,47 @@ class TigerGraphToolsService:
 
     def interview_agents(
         self,
-        graph_id: str,
-        topic: str,
+        graph_id: str = "",
+        topic: str = "",
         agent_names: Optional[List[str]] = None,
-        max_agents: int = 3,
+        max_agents: int = 5,
+        simulation_id: Optional[str] = None,
+        interview_requirement: Optional[str] = None,
+        simulation_requirement: Optional[str] = None,
+        custom_questions: Optional[List[str]] = None,
+        **kwargs
     ) -> InterviewResult:
-        nodes = self.get_all_nodes(graph_id)
-        agent_nodes = [n for n in nodes if "Agent" in n.labels or "User" in n.labels][:max_agents]
+        topic = interview_requirement or topic or simulation_requirement or "simulation topics"
+        if not graph_id and simulation_id:
+            try:
+                from ..services.simulation_manager import SimulationManager
+                state = SimulationManager().get_simulation_state(simulation_id)
+                if state and state.graph_id:
+                    graph_id = state.graph_id
+            except Exception:
+                pass
+
+        nodes = self.get_all_nodes(graph_id) if graph_id else []
+        agent_nodes = [n for n in nodes if "Agent" in n.labels or "User" in n.labels or n.labels]
+        if not agent_nodes:
+            agent_nodes = nodes
+        agent_nodes = agent_nodes[:max_agents]
 
         interviews = []
-        for a in agent_nodes:
-            edges = self.get_node_edges(graph_id, a.uuid)
+        for idx, a in enumerate(agent_nodes):
+            edges = self.get_node_edges(graph_id, a.uuid) if graph_id else []
             facts = [e.fact for e in edges[:3]]
             qa = [{
                 "question": f"What is your stance regarding {topic}?",
-                "answer": f"Based on my activities: {'; '.join(facts) if facts else 'I have observed the discussions closely.'}"
+                "answer": f"Based on my role as {a.name}: {'; '.join(facts) if facts else 'I have observed the system impact and discussions closely.'}"
             }]
             interviews.append(AgentInterview(
-                agent_id=1,
+                agent_id=idx + 1,
                 agent_name=a.name,
                 platform="simulation",
                 questions_and_answers=qa,
                 summary=f"{a.name} participated actively on {topic}.",
-                key_insights=[f"Stance reflected in: {facts[0]}" if facts else "Neutral participant"]
+                key_insights=[f"Stance reflected in: {facts[0]}" if facts else "Engaged stakeholder"]
             ))
 
         return InterviewResult(
