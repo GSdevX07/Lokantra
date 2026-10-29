@@ -104,6 +104,14 @@
       <span class="loading-text">{{ $t('history.loadingText') }}</span>
     </div>
 
+    <!-- Empty State -->
+    <div v-else-if="projects.length === 0" class="empty-state">
+      <span class="empty-icon">📁</span>
+      <span class="empty-text">
+        {{ isAuthenticated ? 'No simulations run yet by this account. Start a simulation to see it in your history.' : 'Sign in to view your simulation history database.' }}
+      </span>
+    </div>
+
     <!-- History Replay Details Modal -->
     <Teleport to="body">
       <Transition name="modal">
@@ -197,11 +205,14 @@ import { ref, computed, onMounted, onUnmounted, onActivated, watch, nextTick } f
 import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getSimulationHistory } from '../api/simulation'
+import { getLocalUserSimulations } from '../services/localSimulationHistory'
+import { useAuth, ensureAuthInitialized } from '../store/auth'
 import hoverSoundSrc from '../assets/audio/hover.mp3'
 
 const router = useRouter()
 const route = useRoute()
 const { t } = useI18n()
+const { isAuthenticated, user } = useAuth()
 
 // State
 const projects = ref([])
@@ -402,21 +413,31 @@ const goToReport = () => {
   }
 }
 
-// Load history projects
+// Load history projects for currently signed-in user from localStorage
 const loadHistory = async () => {
   try {
     loading.value = true
-    const response = await getSimulationHistory(20)
-    if (response.success) {
-      projects.value = response.data || []
+    await ensureAuthInitialized()
+
+    if (!isAuthenticated.value || !user.value) {
+      projects.value = []
+      return
     }
+
+    // Load simulations saved for this specific user in local storage
+    const localList = getLocalUserSimulations(20)
+    projects.value = localList || []
   } catch (error) {
-    console.error('Failed to load history projects:', error)
+    console.error('Failed to load user history from localStorage:', error)
     projects.value = []
   } finally {
     loading.value = false
   }
 }
+
+watch(() => user.value?.id, () => {
+  loadHistory()
+})
 
 // Listen to route changes, reload data when returning to home page
 watch(() => route.path, (newPath) => {

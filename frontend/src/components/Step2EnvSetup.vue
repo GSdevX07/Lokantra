@@ -808,6 +808,7 @@
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FloatingTerminal from './FloatingTerminal.vue'
+import { useAuth, ensureAuthInitialized } from '../store/auth'
 import {
   prepareSimulation,
   getPrepareStatus,
@@ -924,6 +925,12 @@ const handlePrepareFailure = (message) => {
 
 // Handle start simulation button click
 const handleStartSimulation = () => {
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    addLog('[AUTH ERROR] Authentication required: You must be signed in to run simulations.')
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   // Construct parameters passed to parent component
   const params = {}
   
@@ -952,6 +959,12 @@ const selectProfile = (profile) => {
 
 // Automatically start simulation preparation
 const startPrepareSimulation = async () => {
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    addLog('[AUTH ERROR] Authentication required: You must be signed in to prepare simulations.')
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   if (!props.simulationId) {
     addLog(t('log.errorMissingSimId'))
     emit('update-status', 'error')
@@ -1260,7 +1273,13 @@ watch(() => props.systemLogs?.length, () => {
   })
 })
 
-onMounted(() => {
+onMounted(async () => {
+  await ensureAuthInitialized()
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   // Automatically start preparation process
   if (props.simulationId) {
     addLog(t('log.step2Init'))

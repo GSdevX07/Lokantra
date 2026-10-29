@@ -399,6 +399,8 @@ import {
 } from '../api/simulation'
 import { generateReport } from '../api/report'
 import FloatingTerminal from './FloatingTerminal.vue'
+import { useAuth, ensureAuthInitialized } from '../store/auth'
+import { updateLocalSimulation } from '../services/localSimulationHistory'
 
 const { t } = useI18n()
 
@@ -484,6 +486,14 @@ const resetAllState = () => {
 
 // Start simulation
 const doStartSimulation = async () => {
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    addLog('[AUTH ERROR] Authentication required: You must be signed in to run simulations.')
+    emit('update-status', 'error')
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
+
   if (!props.simulationId) {
     addLog(t('log.errorMissingSimId'))
     return
@@ -523,6 +533,10 @@ const doStartSimulation = async () => {
       
       phase.value = 1
       runStatus.value = res.data
+      updateLocalSimulation(props.simulationId, {
+        status: 'running',
+        total_rounds: props.maxRounds || 0
+      })
       
       startStatusPolling()
       startDetailPolling()
@@ -767,6 +781,10 @@ const handleNextStep = async () => {
     
     if (res.success && res.data) {
       const reportId = res.data.report_id
+      updateLocalSimulation(props.simulationId, {
+        status: 'completed',
+        report_id: reportId
+      })
       addLog(t('log.reportGenTaskStarted', { reportId }))
       
       // Navigate to report page
@@ -791,8 +809,16 @@ watch(() => props.systemLogs?.length, () => {
   })
 })
 
-onMounted(() => {
+onMounted(async () => {
   addLog(t('log.step3Init'))
+  await ensureAuthInitialized()
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    addLog('[AUTH ERROR] Authentication required: You must be signed in to run simulations.')
+    emit('update-status', 'error')
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   if (props.simulationId) {
     doStartSimulation()
   }
