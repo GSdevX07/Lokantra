@@ -1,8 +1,8 @@
 """
-Zep Retrieval Tools Service.
-Delegates to TigerGraphToolsService for complete TigerGraph integration.
+Retrieval Tools Service (Dual Provider: TigerGraph + Zep Cloud).
 """
 
+from ..config import Config
 from .tigergraph_tools import (
     SearchResult,
     NodeInfo,
@@ -11,9 +11,16 @@ from .tigergraph_tools import (
     PanoramaResult,
     AgentInterview,
     InterviewResult,
-    TigerGraphToolsService as ZepToolsService,
     TigerGraphToolsService,
 )
+from .zep_tools_impl import (
+    ZepToolsService as OriginalZepToolsService,
+)
+
+if Config.is_tigergraph():
+    ZepToolsService = TigerGraphToolsService
+else:
+    ZepToolsService = OriginalZepToolsService
 
 __all__ = [
     "SearchResult",
@@ -25,4 +32,5 @@ __all__ = [
     "InterviewResult",
     "ZepToolsService",
     "TigerGraphToolsService",
+    "OriginalZepToolsService",
 ]

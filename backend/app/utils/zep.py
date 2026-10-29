@@ -1,4 +1,4 @@
-"""Shared Client, request limits, and retry policy (TigerGraph backed)."""
+"""Shared Zep Cloud client, request limits, and retry policy (Dual Provider: Zep + TigerGraph)."""
 
 from __future__ import annotations
 
@@ -9,15 +9,16 @@ from typing import Any, Callable, TypeVar
 
 import httpx
 try:
+    from zep_cloud.client import Zep
     from zep_cloud.core.api_error import ApiError as ZepApiError
 except ImportError:
+    Zep = None
     class ZepApiError(Exception):
         status_code = 500
         headers = {}
 
 from ..config import Config
 from .logger import get_logger
-from .tigergraph_adapter import TigerGraphZepAdapter
 
 logger = get_logger("lokantra.zep")
 
@@ -31,7 +32,7 @@ MAX_ZEP_SEARCH_RESULTS = 50
 
 
 def normalize_zep_search_query(query: Any) -> str:
-    """Return a non-empty query within limit."""
+    """Return a non-empty query within Zep Cloud's endpoint limit."""
     if not isinstance(query, str):
         raise ValueError("Zep search query must be a string")
     normalized = query.strip()
@@ -41,7 +42,7 @@ def normalize_zep_search_query(query: Any) -> str:
 
 
 def normalize_zep_search_limit(limit: Any) -> int:
-    """Clamp a search result limit to contract."""
+    """Clamp a search result limit to the current Zep Cloud contract."""
     try:
         normalized = int(limit)
     except (TypeError, ValueError) as exc:
@@ -53,29 +54,56 @@ def normalize_zep_search_limit(limit: Any) -> int:
 
 @lru_cache(maxsize=4)
 def _cached_zep_client(api_key: str, timeout: float) -> Any:
-    # Use TigerGraphZepAdapter transparently
+    if Zep is None:
+        raise ImportError("zep_cloud package is not installed")
+    return Zep(
+        api_key=api_key,
+        base_url=ZEP_CLOUD_BASE_URL,
+        timeout=timeout,
+    )
+
+
+@lru_cache(maxsize=4)
+def _cached_tigergraph_client(api_key: str, timeout: float) -> Any:
+    from .tigergraph_adapter import TigerGraphZepAdapter
     return TigerGraphZepAdapter(api_key=api_key, timeout=timeout)
 
 
 def get_zep_client(api_key: str | None = None, timeout: float | None = None) -> Any:
-    """Return a process-shared client backed by TigerGraph."""
-    normalized_key = (api_key or Config.ZEP_API_KEY or "tigergraph").strip()
+    """Return a process-shared client backed by Zep Cloud or TigerGraph depending on Config."""
+    if Config.is_tigergraph():
+        normalized_key = (api_key or Config.ZEP_API_KEY or "tigergraph").strip()
+        request_timeout = float(
+            timeout if timeout is not None else ZEP_HTTP_REQUEST_TIMEOUT_SECONDS
+        )
+        if request_timeout <= 0:
+            raise ValueError("Zep request timeout must be greater than 0")
+        return _cached_tigergraph_client(normalized_key, request_timeout)
+    else:
+        # Exact original Zep validation & client return
+        if os.environ.get("ZEP_API_URL"):
+            raise ValueError("ZEP_API_URL is unsupported; unset it to use Zep Cloud")
 
-    request_timeout = float(
-        timeout if timeout is not None else ZEP_HTTP_REQUEST_TIMEOUT_SECONDS
-    )
-    if request_timeout <= 0:
-        raise ValueError("Zep request timeout must be greater than 0")
-    return _cached_zep_client(normalized_key, request_timeout)
+        normalized_key = (api_key or Config.ZEP_API_KEY or "").strip()
+        if not normalized_key:
+            raise ValueError("ZEP_API_KEY is not configured")
+
+        request_timeout = float(
+            timeout if timeout is not None else ZEP_HTTP_REQUEST_TIMEOUT_SECONDS
+        )
+        if request_timeout <= 0:
+            raise ValueError("Zep request timeout must be greater than 0")
+        return _cached_zep_client(normalized_key, request_timeout)
 
 
 def clear_zep_client_cache() -> None:
     """Clear cached clients. Intended for tests and controlled reconfiguration."""
     _cached_zep_client.cache_clear()
+    _cached_tigergraph_client.cache_clear()
 
 
 def is_retryable_zep_error(error: BaseException) -> bool:
-    """Return whether a failed read is safe and useful to retry."""
+    """Return whether a failed *read* is safe and useful to retry."""
     if isinstance(error, (httpx.TimeoutException, httpx.TransportError)):
         return True
     if isinstance(error, (ConnectionError, TimeoutError, OSError)):
@@ -116,7 +144,7 @@ def call_zep_read_with_retry(
     max_delay: float = 60.0,
     sleep: Callable[[float], None] = time.sleep,
 ) -> T:
-    """Retry a safe read only for transport, 408, 429, or 5xx errors."""
+    """Retry a safe Zep read only for transport, 408, 429, or 5xx errors."""
     if max_attempts < 1:
         raise ValueError("max_attempts must be at least 1")
 
@@ -133,7 +161,7 @@ def call_zep_read_with_retry(
                 max_delay,
             )
             logger.warning(
-                "Read attempt %s/%s failed (%s); retrying in %.1fs",
+                "Zep %s attempt %s/%s failed (%s); retrying in %.1fs",
                 operation_name,
                 attempt,
                 max_attempts,

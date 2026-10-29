@@ -32,7 +32,21 @@ class Config:
     LLM_BASE_URL = os.environ.get('LLM_BASE_URL', 'https://api.openai.com/v1')
     LLM_MODEL_NAME = os.environ.get('LLM_MODEL_NAME', 'gpt-4o-mini')
     
-    # Zep configuration (legacy)
+    # Graph provider configuration ('tigergraph' vs 'zep')
+    GRAPH_PROVIDER = os.environ.get('GRAPH_PROVIDER', 'tigergraph').strip().lower()
+
+    @classmethod
+    def is_tigergraph(cls) -> bool:
+        provider = os.environ.get('GRAPH_PROVIDER', getattr(cls, 'GRAPH_PROVIDER', 'tigergraph')).strip().lower()
+        # Normalize: strip spaces and underscores
+        normalized = provider.replace(" ", "").replace("_", "")
+        return normalized in {'tigergraph', 'tg'}
+
+    @classmethod
+    def is_zep(cls) -> bool:
+        return not cls.is_tigergraph()
+
+    # Zep configuration
     ZEP_API_KEY = os.environ.get('ZEP_API_KEY')
     
     # TigerGraph configuration
@@ -85,10 +99,14 @@ class Config:
         errors: list[str] = []
         if not cls.LLM_API_KEY:
             errors.append("LLM_API_KEY is not configured")
-        if not cls.ZEP_API_KEY:
-            errors.append("ZEP_API_KEY is not configured")
-        if os.environ.get("ZEP_API_URL"):
-            errors.append("ZEP_API_URL is not supported; Lokantra connects exclusively to Zep Cloud")
+        if cls.is_zep():
+            if not cls.ZEP_API_KEY:
+                errors.append("ZEP_API_KEY is not configured")
+            if os.environ.get("ZEP_API_URL"):
+                errors.append("ZEP_API_URL is not supported; Lokantra connects exclusively to Zep Cloud")
+        else:
+            if not cls.TIGERGRAPH_HOST:
+                errors.append("TIGERGRAPH_HOST is not configured")
         if cls.DEBUG:
             import warnings
             warnings.warn("Flask DEBUG mode is enabled. Do not use in production.", RuntimeWarning)

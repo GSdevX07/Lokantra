@@ -484,8 +484,12 @@ def _build_graph_impl():
         
         # Check configuration
         errors = []
-        if not Config.ZEP_API_KEY and not Config.TIGERGRAPH_HOST:
-            errors.append(t('api.zepApiKeyMissing'))
+        if Config.is_tigergraph():
+            if not Config.TIGERGRAPH_HOST:
+                errors.append("TigerGraph host is not configured")
+        else:
+            if not Config.ZEP_API_KEY:
+                errors.append(t('api.zepApiKeyMissing'))
         if errors:
             logger.error(f"Configuration error: {errors}")
             return jsonify({
@@ -882,11 +886,18 @@ def get_graph_data(graph_id: str):
     Get graph data (nodes and edges)
     """
     try:
-        if not Config.ZEP_API_KEY and not Config.TIGERGRAPH_HOST:
-            return jsonify({
-                "success": False,
-                "error": t('api.zepApiKeyMissing')
-            }), 500
+        if Config.is_tigergraph():
+            if not Config.TIGERGRAPH_HOST:
+                return jsonify({
+                    "success": False,
+                    "error": "TigerGraph host is not configured"
+                }), 500
+        else:
+            if not Config.ZEP_API_KEY:
+                return jsonify({
+                    "success": False,
+                    "error": t('api.zepApiKeyMissing')
+                }), 500
         
         builder = GraphBuilderService(api_key=Config.ZEP_API_KEY)
         graph_data = builder.get_graph_data(graph_id)
@@ -910,11 +921,18 @@ def delete_graph(graph_id: str):
     Delete Zep graph
     """
     try:
-        if not Config.ZEP_API_KEY and not Config.TIGERGRAPH_HOST:
-            return jsonify({
-                "success": False,
-                "error": t('api.zepApiKeyMissing')
-            }), 500
+        if Config.is_tigergraph():
+            if not Config.TIGERGRAPH_HOST:
+                return jsonify({
+                    "success": False,
+                    "error": "TigerGraph host is not configured"
+                }), 500
+        else:
+            if not Config.ZEP_API_KEY:
+                return jsonify({
+                    "success": False,
+                    "error": t('api.zepApiKeyMissing')
+                }), 500
         
         projects = ProjectManager.find_projects_by_graph_id(graph_id)
         if not projects:
