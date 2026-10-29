@@ -285,6 +285,27 @@ class ProjectManager:
             "path": file_path,
             "size": file_size
         }
+
+    @classmethod
+    def save_text_to_project(cls, project_id: str, text: str, original_filename: str = "direct_scenario_input.txt") -> Dict[str, Any]:
+        """Save directly entered text as a file in project directory"""
+        files_dir = cls._get_project_files_dir(project_id)
+        os.makedirs(files_dir, exist_ok=True)
+        
+        ext = os.path.splitext(original_filename)[1].lower() or ".txt"
+        safe_filename = f"{uuid.uuid4().hex[:8]}{ext}"
+        file_path = os.path.join(files_dir, safe_filename)
+        
+        data_bytes = text.encode('utf-8')
+        with open(file_path, 'wb') as f:
+            f.write(data_bytes)
+            
+        return {
+            "original_filename": original_filename,
+            "saved_filename": safe_filename,
+            "path": file_path,
+            "size": len(data_bytes)
+        }
     
     @classmethod
     def save_extracted_text(cls, project_id: str, text: str) -> None:

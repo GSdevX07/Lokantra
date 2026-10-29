@@ -59,10 +59,26 @@ class Config:
     TIGERGRAPH_SECRET = os.environ.get('TIGERGRAPH_SECRET', '')
     TIGERGRAPH_API_TOKEN = os.environ.get('TIGERGRAPH_API_TOKEN', '')
     
-    # File upload configuration
+    # File upload configuration - extended multi-format support
     MAX_CONTENT_LENGTH = 50 * 1024 * 1024  # 50MB
     UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), '../uploads')
-    ALLOWED_EXTENSIONS = {'pdf', 'md', 'txt', 'markdown'}
+    ALLOWED_EXTENSIONS = {
+        'pdf', 'md', 'markdown', 'txt', 'rtf',
+        'docx', 'doc',
+        'xlsx', 'xls', 'csv', 'tsv',
+        'json', 'jsonl', 'xml', 'html', 'htm', 'yaml', 'yml',
+        'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'svg',
+        'py', 'js', 'ts', 'sql', 'sh'
+    }
+
+    # Sarvam AI Voice Input configuration (PRIMARY)
+    SARVAM_API_KEY = os.environ.get('SARVAM_API_KEY')
+    SARVAM_API_URL = os.environ.get('SARVAM_API_URL', 'https://api.sarvam.ai/speech-to-text')
+    SARVAM_MODEL = os.environ.get('SARVAM_MODEL', 'saaras:v4')
+
+    # Wispr Flow Voice Input configuration (Fallback)
+    WISPR_FLOW_API_KEY = os.environ.get('WISPR_FLOW_API_KEY')
+    WISPR_FLOW_API_URL = os.environ.get('WISPR_FLOW_API_URL', 'https://platform-api.wisprflow.ai/api/v1/dash/api')
     
     # Text processing configuration
     DEFAULT_CHUNK_SIZE = 500  # Default chunk size

@@ -218,7 +218,13 @@ const initProject = async () => {
 
 const handleNewProject = async () => {
   const pending = getPendingUpload()
-  if (!pending.isPending || pending.files.length === 0) {
+  const hasRealPayload = pending.isPending && (
+    (pending.files && pending.files.length > 0) ||
+    (pending.directText && pending.directText.trim().length > 0) ||
+    (pending.simulationRequirement && pending.simulationRequirement.trim().length > 0)
+  )
+
+  if (!hasRealPayload) {
     addLog('Reality Seed initialized in Venom Neural Engine...')
     currentPhase.value = 0
     ontologyProgress.value = { message: 'Uploading and analyzing docs...' }
@@ -293,8 +299,13 @@ const handleNewProject = async () => {
     addLog('Starting ontology generation: Uploading files...')
     
     const formData = new FormData()
-    pending.files.forEach(f => formData.append('files', f))
-    formData.append('simulation_requirement', pending.simulationRequirement)
+    if (pending.files && pending.files.length > 0) {
+      pending.files.forEach(f => formData.append('files', f))
+    }
+    formData.append('simulation_requirement', pending.simulationRequirement || '')
+    if (pending.directText) {
+      formData.append('direct_text', pending.directText)
+    }
     
     const res = await generateOntology(formData)
     if (res.success) {
