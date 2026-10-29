@@ -368,6 +368,7 @@ import { computed, ref, watch, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createSimulation } from '../api/simulation'
+import { saveLocalSimulation } from '../services/localSimulationHistory'
 import FloatingTerminal from './FloatingTerminal.vue'
 
 const router = useRouter()
@@ -406,6 +407,14 @@ const handleEnterEnvSetup = async () => {
     })
     
     if (res.success && res.data?.simulation_id) {
+      saveLocalSimulation({
+        simulation_id: res.data.simulation_id,
+        project_id: props.projectData?.project_id,
+        project_name: props.projectData?.name || 'Swarm Reality Seed',
+        simulation_requirement: props.projectData?.simulation_requirement || '',
+        files: props.projectData?.files || [],
+        status: 'created'
+      })
       // Navigate to simulation page
       router.push({
         name: 'Simulation',

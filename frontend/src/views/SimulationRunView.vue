@@ -19,6 +19,8 @@
           <span class="dot"></span>
           {{ statusText }}
         </span>
+      <div class="step-divider"></div>
+        <UserAuthButton />
       </div>
     </header>
 
@@ -65,6 +67,8 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step3Simulation from '../components/Step3Simulation.vue'
+import UserAuthButton from '../components/UserAuthButton.vue'
+import { useAuth, ensureAuthInitialized, setAuthRedirect } from '../store/auth'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation, getSimulationConfig, stopSimulation, closeSimulationEnv, getEnvStatus } from '../api/simulation'
 import { useI18n } from 'vue-i18n'
@@ -322,7 +326,14 @@ watch(isSimulating, (newValue) => {
   }
 }, { immediate: true })
 
-onMounted(() => {
+onMounted(async () => {
+  await ensureAuthInitialized()
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    setAuthRedirect(route.fullPath)
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   addLog(t('log.simRunViewInit'))
   
   // Record maxRounds configuration (value already obtained from query params during init)

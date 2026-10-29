@@ -19,6 +19,8 @@
           <span class="dot"></span>
           {{ statusText }}
         </span>
+      <div class="step-divider"></div>
+        <UserAuthButton />
       </div>
     </header>
 
@@ -62,6 +64,8 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step2EnvSetup from '../components/Step2EnvSetup.vue'
+import UserAuthButton from '../components/UserAuthButton.vue'
+import { useAuth, ensureAuthInitialized, setAuthRedirect } from '../store/auth'
 import { getProject, getGraphData } from '../api/graph'
 import { getSimulation, stopSimulation, getEnvStatus, closeSimulationEnv } from '../api/simulation'
 import { useI18n } from 'vue-i18n'
@@ -315,6 +319,13 @@ const refreshGraph = () => {
 }
 
 onMounted(async () => {
+  await ensureAuthInitialized()
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    setAuthRedirect(route.fullPath)
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   addLog(t('log.simViewInit'))
   
   // Check and close running simulation (when user returns from Step 3)

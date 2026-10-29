@@ -32,6 +32,14 @@
       />
     </header>
 
+    <!-- Top-Right User Authentication & Profile Bar -->
+    <div
+      v-if="!showIntro"
+      class="fixed top-3 sm:top-4 right-4 sm:right-8 z-40 flex items-center gap-3 transition-opacity duration-300"
+    >
+      <UserAuthButton />
+    </div>
+
     <!-- HERO SECTION (Fixed full-screen, no scrolling) -->
     <main class="h-full w-full flex flex-col justify-center px-6 sm:px-12 md:px-16 lg:px-24 xl:px-28 pt-24 pb-12 relative z-10 overflow-hidden">
       <div class="w-full max-w-xl lg:max-w-2xl relative z-10 flex flex-col items-start text-left">
@@ -69,7 +77,7 @@
           }"
         >
           <button
-            @click="activeModal = 'console'"
+            @click="handleStartSimulationClick"
             class="venom-pill-btn-primary group"
           >
             <span class="relative z-10 flex items-center gap-2.5">
@@ -339,6 +347,7 @@
               <span class="font-mono text-sm tracking-wider uppercase text-neutral-200 font-semibold">
                 {{ 
                   activeModal === 'console' ? 'Simulation Console' :
+                  activeModal === 'authRequired' ? 'Authentication Required' :
                   activeModal === 'workflow' ? 'Swarm Workflow Architecture' :
                   activeModal === 'history' ? 'Simulation History Database' :
                   'System Status & Architecture'
@@ -356,8 +365,96 @@
 
           <!-- Modal Scrollable Body -->
           <div class="relative z-10 overflow-y-auto p-6 sm:p-8 space-y-6">
+            <!-- Modal Content 0: Auth Required Prompt -->
+            <div v-if="activeModal === 'authRequired'" class="auth-required-box flex flex-col items-center text-center p-6 sm:p-10 space-y-6 max-w-lg mx-auto">
+              <!-- Pulsing Symbiote Badge -->
+              <div class="relative w-18 h-18 sm:w-22 sm:h-22 flex items-center justify-center">
+                <div class="absolute inset-0 rounded-full bg-white/10 border border-white/20 animate-ping opacity-20"></div>
+                <div class="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-black border border-white/25 flex items-center justify-center shadow-[0_0_35px_rgba(255,255,255,0.2)]">
+                  <!-- User's Exact White Hand Symbol -->
+                  <img
+                    src="../assets/icons/white_hand.png"
+                    alt="Stop"
+                    class="w-9 h-9 sm:w-11 sm:h-11 object-contain select-none filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)]"
+                  />
+                </div>
+              </div>
+
+              <!-- Cheeky Message -->
+              <div class="space-y-3">
+                <div class="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-white/5 border border-white/15 text-[11px] font-mono tracking-widest uppercase text-neutral-300">
+                  <span class="w-1.5 h-1.5 rounded-full bg-amber-400 shadow-[0_0_8px_#fbbf24]"></span>
+                  Hold Up &bull; Sign-in Required
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white leading-tight font-body">
+                  &ldquo;Uhhhh bro at least sign in first, we&rsquo;re trying to count you&rdquo;
+                </h2>
+                <p class="text-xs sm:text-sm text-neutral-400 max-w-md mx-auto leading-relaxed">
+                  Sign in with Google to enter the swarm engine and execute parallel reality simulations.
+                </p>
+              </div>
+
+              <!-- Action Buttons -->
+              <div class="w-full space-y-3.5 pt-2">
+                <button
+                  @click="handleModalSignIn"
+                  type="button"
+                  :disabled="isSigningInModal"
+                  class="venom-pill-btn-primary group w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-full text-white font-semibold text-base transition-all duration-300 cursor-pointer disabled:opacity-50"
+                >
+                  <!-- Google SVG -->
+                  <svg class="w-4 h-4 shrink-0 transition-transform group-hover:scale-110" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.35 24 12 24z"/>
+                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.35 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+                  </svg>
+                  <span class="relative z-10 font-bold tracking-wide">
+                    <span v-if="isSigningInModal">Connecting with Google...</span>
+                    <span v-else>Let me in</span>
+                  </span>
+                  <span class="inline-block transition-transform duration-300 group-hover:translate-x-1.5 font-bold text-white">&rarr;</span>
+                </button>
+
+                <p v-if="authModalError" class="text-xs text-red-400 font-mono text-center">
+                  {{ authModalError }}
+                </p>
+                <p v-if="!isConfigured" class="text-xs text-amber-400/90 text-center">
+                  Note: Supabase credentials not detected in .env file.
+                </p>
+
+                <button
+                  @click="activeModal = null"
+                  type="button"
+                  class="w-full py-2 text-xs text-neutral-400 hover:text-white transition-colors cursor-pointer"
+                >
+                  I&rsquo;ll just look around
+                </button>
+              </div>
+            </div>
+
             <!-- Modal Content 1: Simulation Console -->
             <div v-if="activeModal === 'console'" class="console-box">
+              <!-- Unauthenticated Warning Banner -->
+              <div v-if="!isAuthenticated" class="mb-5 p-4 rounded-2xl bg-[#0d0d0d]/90 border border-white/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
+                <div class="flex items-center gap-3 text-left">
+                  <img
+                    src="../assets/icons/white_hand.png"
+                    alt="Stop"
+                    class="w-5 h-5 object-contain select-none shrink-0 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                  />
+                  <span class="text-xs sm:text-sm font-semibold text-neutral-200">&ldquo;Uhhhh bro at least sign in first, we&rsquo;re trying to count you&rdquo;</span>
+                </div>
+                <button
+                  @click="handleModalSignIn"
+                  type="button"
+                  :disabled="isSigningInModal"
+                  class="px-5 py-2 rounded-full bg-black border border-white/25 text-white font-bold text-xs hover:bg-[#0a0a0a] hover:border-white/40 transition-all shadow-[0_4px_16px_rgba(0,0,0,0.8)] shrink-0 cursor-pointer flex items-center gap-1.5"
+                >
+                  <span>Let me in</span>
+                  <span>&rarr;</span>
+                </button>
+              </div>
               <!-- Upload Area -->
               <div class="console-section">
                 <div class="console-header">
@@ -527,6 +624,8 @@ import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import HistoryDatabase from '../components/HistoryDatabase.vue'
 import VenomIntro from '../components/VenomIntro.vue'
+import UserAuthButton from '../components/UserAuthButton.vue'
+import { useAuth } from '../store/auth'
 
 const router = useRouter()
 const route = useRoute()
@@ -554,6 +653,13 @@ const handleLogoClick = () => {
   }
 }
 
+
+watch(() => route.query.authRequired, (newVal) => {
+  if (newVal) {
+    activeModal.value = 'authRequired'
+  }
+})
+
 watch(() => [route.path, route.query.intro], ([newPath, introQuery]) => {
   if (newPath === '/' || introQuery === '1') {
     showIntro.value = true
@@ -565,6 +671,31 @@ watch(() => [route.path, route.query.intro], ([newPath, introQuery]) => {
 
 // UI state
 const activeModal = ref(null)
+// Supabase Authentication state
+const { isAuthenticated, signInWithGoogle, isConfigured } = useAuth()
+const isSigningInModal = ref(false)
+const authModalError = ref('')
+
+const handleStartSimulationClick = () => {
+  if (!isAuthenticated.value) {
+    activeModal.value = 'authRequired'
+    return
+  }
+  activeModal.value = 'console'
+}
+
+const handleModalSignIn = async () => {
+  try {
+    isSigningInModal.value = true
+    authModalError.value = ''
+    await signInWithGoogle()
+  } catch (err) {
+    authModalError.value = err.message || 'Failed to initialize Google sign in.'
+  } finally {
+    isSigningInModal.value = false
+  }
+}
+
 const showPills = ref(false)
 
 // Interactive Head Rotation Canvas Engine (0-latency preloaded WebP sequence)
@@ -696,6 +827,10 @@ const removeFile = (index) => {
 }
 
 const quickDemoSimulation = () => {
+  if (!isAuthenticated.value) {
+    activeModal.value = 'authRequired'
+    return
+  }
   formData.value.simulationRequirement = 'Simulate autonomous swarm agent reaction to anomalous bio-tech volatility and divergent sentiment trajectories.'
   const mockBlob = new Blob(['# Venom Reality Blueprint\n\nBio-tech market volatility and swarm multi-agent consensus dynamics.'], { type: 'text/markdown' })
   const mockFile = new File([mockBlob], 'venom_reality_seed.md', { type: 'text/markdown' })
@@ -704,6 +839,10 @@ const quickDemoSimulation = () => {
 }
 
 const startSimulation = () => {
+  if (!isAuthenticated.value) {
+    activeModal.value = 'authRequired'
+    return
+  }
   if (!canSubmit.value || loading.value) return
   
   import('../store/pendingUpload.js').then(({ setPendingUpload }) => {
@@ -759,6 +898,9 @@ onMounted(() => {
   // Start hero animations immediately if not showing intro
   if (!showIntro.value) {
     startHeroAnimations()
+  }
+  if (route.query.authRequired) {
+    activeModal.value = 'authRequired'
   }
 
   onUnmounted(() => {
@@ -885,6 +1027,7 @@ onMounted(() => {
 }
 
 /* --- Signature Venom Symbiote Action Buttons --- */
+/* --- Pure Solid Black Action Buttons (No White Shade) --- */
 .venom-pill-btn-primary {
   position: relative;
   display: inline-flex;
@@ -892,77 +1035,36 @@ onMounted(() => {
   justify-content: center;
   padding: clamp(14px, 1.8vw, 17px) clamp(28px, 3.5vw, 42px);
   border-radius: 999px;
-  border: none;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   outline: none;
   cursor: pointer;
-  background:
-    radial-gradient(120% 95% at 50% 12%, rgba(255, 255, 255, 0.42) 0%, rgba(255, 255, 255, 0.08) 34%, rgba(0, 0, 0, 0) 60%),
-    linear-gradient(180deg, #222222 0%, #0d0d0d 54%, #000000 100%);
+  background: #000000 !important;
   color: #ffffff;
   font-size: clamp(15px, 1.8vw, 18px);
   font-weight: 600;
   letter-spacing: -0.01em;
   white-space: nowrap;
-  box-shadow:
-    0 22px 38px -10px rgba(0, 0, 0, 0.85),
-    0 10px 18px -4px rgba(0, 0, 0, 0.6),
-    0 0 22px rgba(255, 255, 255, 0.12),
-    inset 0 2px 3px rgba(255, 255, 255, 0.45),
-    inset 0 -3px 6px rgba(255, 255, 255, 0.14),
-    inset 0 0 16px rgba(0, 0, 0, 0.95);
-  transform-style: preserve-3d;
-  transition: transform 0.2s ease, box-shadow 0.25s ease;
+  box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.95);
+  transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.25s ease, background-color 0.2s ease;
   user-select: none;
   touch-action: manipulation;
 }
 
-.venom-pill-btn-primary::before {
-  content: "";
-  position: absolute;
-  top: 4px;
-  left: 12%;
-  right: 12%;
-  height: 38%;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba(255, 255, 255, 0.45) 0%,
-    rgba(255, 255, 255, 0.08) 65%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  pointer-events: none;
-  filter: blur(0.5px);
-}
-
+.venom-pill-btn-primary::before,
 .venom-pill-btn-primary::after {
-  content: "";
-  position: absolute;
-  bottom: 4px;
-  left: 18%;
-  right: 18%;
-  height: 20%;
-  border-radius: 999px;
-  background: linear-gradient(
-    0deg,
-    rgba(255, 255, 255, 0.22) 0%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  pointer-events: none;
-  filter: blur(0.8px);
+  content: none !important;
+  display: none !important;
 }
 
 .venom-pill-btn-primary:hover {
+  background: #0a0a0a !important;
+  border-color: rgba(255, 255, 255, 0.45);
   transform: translateY(-2px) scale(1.02);
-  box-shadow:
-    0 26px 48px -10px rgba(0, 0, 0, 0.92),
-    0 14px 24px -4px rgba(0, 0, 0, 0.65),
-    0 0 30px rgba(255, 255, 255, 0.25),
-    inset 0 2px 4px rgba(255, 255, 255, 0.55),
-    inset 0 -3px 6px rgba(255, 255, 255, 0.18),
-    inset 0 0 20px rgba(0, 0, 0, 0.95);
+  box-shadow: 0 16px 36px -4px rgba(0, 0, 0, 0.98);
 }
 
 .venom-pill-btn-primary:active {
+  background: #000000 !important;
   transform: translateY(0) scale(0.98);
 }
 

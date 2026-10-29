@@ -23,6 +23,8 @@
           <span class="dot"></span>
           {{ statusText }}
         </span>
+        <div class="step-divider"></div>
+        <UserAuthButton />
       </div>
 
       <!-- Glowing Header Border Bottom Accent -->
@@ -76,8 +78,10 @@ import { useI18n } from 'vue-i18n'
 import GraphPanel from '../components/GraphPanel.vue'
 import Step1GraphBuild from '../components/Step1GraphBuild.vue'
 import Step2EnvSetup from '../components/Step2EnvSetup.vue'
+import UserAuthButton from '../components/UserAuthButton.vue'
 import { generateOntology, getProject, buildGraph, getTaskStatus, getGraphData } from '../api/graph'
 import { getPendingUpload, clearPendingUpload } from '../store/pendingUpload'
+import { useAuth, ensureAuthInitialized, setAuthRedirect } from '../store/auth'
 const route = useRoute()
 const router = useRouter()
 const { t, tm } = useI18n()
@@ -488,7 +492,14 @@ const stopGraphPolling = () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await ensureAuthInitialized()
+  const { isAuthenticated } = useAuth()
+  if (!isAuthenticated.value) {
+    setAuthRedirect(route.fullPath)
+    router.replace({ path: '/home', query: { authRequired: 'simulation' } })
+    return
+  }
   initProject()
 })
 
