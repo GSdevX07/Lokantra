@@ -18,7 +18,7 @@
         :aria-expanded="isDropdownOpen"
       >
         <!-- Avatar Ring -->
-        <div class="avatar-ring relative w-7 h-7 rounded-full overflow-hidden border border-white/25 shadow-[0_0_8px_rgba(255,255,255,0.2)] group-hover:shadow-[0_0_12px_rgba(255,255,255,0.4)] transition-all">
+        <div class="avatar-ring relative w-7 h-7 rounded-full overflow-hidden border border-white/25 shadow-sm shadow-black/80 transition-all">
           <img
             v-if="userAvatar"
             :src="userAvatar"
@@ -55,7 +55,7 @@
       <Transition name="auth-popover">
         <div
           v-if="isDropdownOpen"
-          class="absolute right-0 mt-2.5 w-72 rounded-xl bg-[#090909]/95 backdrop-blur-xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.9),0_0_20px_rgba(255,255,255,0.05)] p-4 z-50 text-neutral-200 text-left select-none"
+          class="absolute right-0 mt-2.5 w-72 rounded-xl bg-[#090909]/95 backdrop-blur-xl border border-white/15 shadow-[0_16px_40px_rgba(0,0,0,0.95)] p-4 z-50 text-neutral-200 text-left select-none"
         >
           <!-- User Info Header -->
           <div class="flex items-center gap-3 pb-3 border-b border-white/10">
@@ -132,7 +132,7 @@
         @click="handleSignIn"
         type="button"
         :disabled="isSigningIn"
-        class="google-signin-btn group relative flex items-center gap-2.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-neutral-950/85 hover:bg-neutral-900 border border-white/20 hover:border-white/50 text-neutral-100 transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.8)] hover:shadow-[0_0_20px_rgba(255,255,255,0.2)] cursor-pointer backdrop-blur-md"
+        class="google-signin-btn group relative flex items-center gap-2.5 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-full bg-neutral-950/85 hover:bg-neutral-900 border border-white/20 hover:border-white/50 text-neutral-100 transition-all duration-300 shadow-[0_4px_16px_rgba(0,0,0,0.8)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.95)] cursor-pointer backdrop-blur-md"
         title="Sign in with Google"
       >
         <!-- Google Logo SVG -->

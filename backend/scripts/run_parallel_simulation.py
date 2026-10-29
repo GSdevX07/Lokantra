@@ -1177,12 +1177,33 @@ async def run_twitter_simulation(
     if os.path.exists(db_path):
         os.remove(db_path)
     
-    result.env = oasis.make(
-        agent_graph=result.agent_graph,
-        platform=oasis.DefaultPlatformType.TWITTER,
-        database_path=db_path,
-        semaphore=30,  # Limit max concurrent LLM requests to prevent API overload
-    )
+    # Use lightweight random recsys to eliminate heavy PyTorch CPU BERT forward passes
+    try:
+        from oasis.social_platform.platform import Platform as OasisPlatform
+        from oasis.social_platform.channel import Channel as OasisChannel
+        tw_channel = OasisChannel()
+        tw_platform = OasisPlatform(
+            db_path=db_path,
+            channel=tw_channel,
+            recsys_type="random",
+            refresh_rec_post_count=2,
+            max_rec_post_len=5,
+            following_post_count=3,
+        )
+        result.env = oasis.make(
+            agent_graph=result.agent_graph,
+            platform=tw_platform,
+            database_path=db_path,
+            semaphore=30,
+        )
+    except Exception as e:
+        log_info(f"Custom platform initialization fallback: {e}")
+        result.env = oasis.make(
+            agent_graph=result.agent_graph,
+            platform=oasis.DefaultPlatformType.TWITTER,
+            database_path=db_path,
+            semaphore=30,
+        )
     
     await result.env.reset()
     log_info("Environment started")

@@ -252,6 +252,7 @@ class SimulationConfigGenerator:
         enable_twitter: bool = True,
         enable_reddit: bool = True,
         progress_callback: Optional[Callable[[int, int, str], None]] = None,
+        super_speed: bool = False,
     ) -> SimulationParameters:
         """
         Intelligently generate complete simulation configuration (stepped generation)
@@ -296,9 +297,27 @@ class SimulationConfigGenerator:
         # ========== Step 1: Generate time configuration ==========
         report_progress(1, t('progress.generatingTimeConfig'))
         num_entities = len(entities)
-        time_config_result = self._generate_time_config(context, num_entities)
-        time_config = self._parse_time_config(time_config_result, num_entities)
-        reasoning_parts.append(f"{t('progress.timeConfigLabel')}: {time_config_result.get('reasoning', t('common.success'))}")
+        if super_speed:
+            # Super Speed Mode: Pre-configured tight 3-round timeline with high-density interaction
+            time_config = TimeSimulationConfig(
+                total_simulation_hours=3,
+                minutes_per_round=60,
+                agents_per_hour_min=2,
+                agents_per_hour_max=min(5, max(3, num_entities // 3)),
+                peak_hours=[1, 2],
+                off_peak_hours=[],
+                off_peak_activity_multiplier=0.8,
+                morning_hours=[],
+                morning_activity_multiplier=1.0,
+                work_hours=[0, 1, 2],
+                work_activity_multiplier=1.0,
+                peak_activity_multiplier=1.2,
+            )
+            reasoning_parts.append(f"{t('progress.timeConfigLabel')}: Super Speed 3-round timeline")
+        else:
+            time_config_result = self._generate_time_config(context, num_entities)
+            time_config = self._parse_time_config(time_config_result, num_entities)
+            reasoning_parts.append(f"{t('progress.timeConfigLabel')}: {time_config_result.get('reasoning', t('common.success'))}")
         
         # ========== Step 2: Generate event configuration ==========
         report_progress(2, t('progress.generatingEventConfig'))

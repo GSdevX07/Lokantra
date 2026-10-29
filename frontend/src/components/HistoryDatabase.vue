@@ -588,7 +588,7 @@ onUnmounted(() => {
 }
 
 .project-card:hover {
-  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.95), 0 0 20px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 36px -6px rgba(0, 0, 0, 0.95);
   border-color: rgba(255, 255, 255, 0.35);
   background: rgba(20, 20, 20, 0.92);
   transform: translateY(0) scale(1);
@@ -633,7 +633,7 @@ onUnmounted(() => {
 .status-icon.available {
   opacity: 1;
   color: #ffffff;
-  text-shadow: 0 0 8px rgba(255, 255, 255, 0.4);
+  text-shadow: none;
 }
 
 .status-icon.unavailable {
@@ -656,7 +656,7 @@ onUnmounted(() => {
 }
 
 /* Progress status colors */
-.card-progress.completed { color: #ffffff; text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); }
+.card-progress.completed { color: #ffffff; text-shadow: none; }
 .card-progress.in-progress { color: #cbd5e1; }
 .card-progress.not-started { color: #64748b; }
 .card-status.pending { color: #64748b; }
@@ -806,7 +806,7 @@ onUnmounted(() => {
 
 .project-card:hover .card-title {
   color: #ffffff;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.4);
+  text-shadow: none;
 }
 
 /* Card description */

@@ -21,12 +21,18 @@ from .zep_memory_updater_impl import (
     ZepGraphMemoryManager as OriginalZepGraphMemoryManager,
 )
 
-if Config.is_tigergraph():
-    ZepGraphMemoryUpdater = TigerGraphMemoryUpdater
-    ZepGraphMemoryManager = TigerGraphMemoryManager
-else:
-    ZepGraphMemoryUpdater = OriginalZepGraphMemoryUpdater
-    ZepGraphMemoryManager = OriginalZepGraphMemoryManager
+class ZepGraphMemoryUpdater:
+    def __new__(cls, *args, **kwargs):
+        if Config.is_tigergraph():
+            return TigerGraphMemoryUpdater(*args, **kwargs)
+        return OriginalZepGraphMemoryUpdater(*args, **kwargs)
+
+class ZepGraphMemoryManager:
+    @staticmethod
+    def get_simulation_ids_for_graph(graph_id: str):
+        if Config.is_tigergraph():
+            return TigerGraphMemoryManager.get_simulation_ids_for_graph(graph_id)
+        return OriginalZepGraphMemoryManager.get_simulation_ids_for_graph(graph_id)
 
 __all__ = [
     "AgentActivity",

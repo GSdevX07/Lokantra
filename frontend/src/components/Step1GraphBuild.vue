@@ -416,9 +416,11 @@ const handleEnterEnvSetup = async () => {
         status: 'created'
       })
       // Navigate to simulation page
+      const isSuperSpeed = sessionStorage.getItem('lokantra_super_speed') === 'true'
       router.push({
         name: 'Simulation',
-        params: { simulationId: res.data.simulation_id }
+        params: { simulationId: res.data.simulation_id },
+        query: isSuperSpeed ? { superSpeed: 'true' } : {}
       })
     } else {
       console.error('Failed to create simulation:', res.error)

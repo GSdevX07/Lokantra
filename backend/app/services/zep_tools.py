@@ -17,10 +17,11 @@ from .zep_tools_impl import (
     ZepToolsService as OriginalZepToolsService,
 )
 
-if Config.is_tigergraph():
-    ZepToolsService = TigerGraphToolsService
-else:
-    ZepToolsService = OriginalZepToolsService
+class ZepToolsService:
+    def __new__(cls, *args, **kwargs):
+        if Config.is_tigergraph():
+            return TigerGraphToolsService(*args, **kwargs)
+        return OriginalZepToolsService(*args, **kwargs)
 
 __all__ = [
     "SearchResult",

@@ -26,7 +26,7 @@
       <img
         src="../assets/logo/lokantra_wordmark.png"
         alt="LOKĀNTRA"
-        class="h-12 sm:h-15 md:h-18 lg:h-20 max-w-[50vw] sm:max-w-[36vw] md:max-w-[30vw] w-auto object-contain cursor-pointer select-none filter drop-shadow-[0_0_25px_rgba(255,255,255,0.18)] drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hover:brightness-[1.15] hover:scale-[1.03] transition-all duration-300"
+        class="h-12 sm:h-15 md:h-18 lg:h-20 max-w-[50vw] sm:max-w-[36vw] md:max-w-[30vw] w-auto object-contain cursor-pointer select-none filter drop-shadow-[0_4px_16px_rgba(0,0,0,0.95)] hover:brightness-[1.15] hover:scale-[1.03] transition-all duration-300"
         @click="handleLogoClick"
         title="LOKĀNTRA"
       />
@@ -65,7 +65,7 @@
           class="text-neutral-300/90 mb-6 sm:mb-8 select-text pointer-events-none"
           style="font-size: clamp(17px, 2.3vw, 24px); line-height: 1.45; font-weight: 450; min-height: 64px; font-family: var(--font-body); letter-spacing: -0.01em; filter: blur(0.8px);"
         >
-          {{ displayedText }}<span v-if="!typewriterDone" class="inline-block w-[2px] h-[1.15em] bg-white align-middle ml-[2px] cursor-blink shadow-[0_0_8px_white]"></span>
+          {{ displayedText }}<span v-if="!typewriterDone" class="inline-block w-[2px] h-[1.15em] bg-white align-middle ml-[2px] cursor-blink "></span>
         </p>
 
         <!-- 4. Venom Symbiote Action Buttons -->
@@ -84,6 +84,13 @@
               Start Simulation
               <span class="inline-block transition-transform duration-300 group-hover:translate-x-1.5 font-bold text-white">&rarr;</span>
             </span>
+          </button>
+
+          <button
+            @click="activeModal = 'different'"
+            class="venom-pill-btn-secondary"
+          >
+            Why Are We Different?
           </button>
 
           <button
@@ -135,7 +142,7 @@
           </svg>
         </div>
 
-        <div class="modal-dialog relative w-full max-w-4xl max-h-[85vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col text-neutral-100">
+        <div :class="['modal-dialog relative w-full rounded-2xl shadow-2xl overflow-hidden flex flex-col text-neutral-100 transition-all duration-300', activeModal === 'different' ? 'max-w-5xl max-h-[88vh]' : 'max-w-4xl max-h-[85vh]']">
           <!-- VENOMOUS WEB STRINGS & FRACTURE CRACKS BACKGROUND LAYER -->
           <div class="modal-venom-web-bg pointer-events-none select-none absolute inset-0 z-0 overflow-hidden">
             <svg class="w-full h-full" viewBox="0 0 1200 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
@@ -341,20 +348,94 @@
           </div>
 
           <!-- Modal Header Bar -->
-          <div class="modal-header-bar flex items-center justify-between px-6 py-5 border-b border-white/10 bg-black/60 relative z-10 backdrop-blur-md">
+          <div class="modal-header-bar flex flex-col md:flex-row md:items-center justify-between gap-3 px-6 py-4 border-b border-white/10 bg-black/60 relative z-10 backdrop-blur-md">
             <div class="flex items-center gap-3">
-              <span class="w-2.5 h-2.5 rounded-full bg-white shadow-[0_0_10px_white]"></span>
-              <span class="font-mono text-sm tracking-wider uppercase text-neutral-200 font-semibold">
+              <span class="w-2.5 h-2.5 rounded-full bg-white "></span>
+              <span class="font-mono text-sm tracking-wider uppercase text-neutral-200 font-semibold truncate">
                 {{ 
                   activeModal === 'console' ? 'Simulation Console' :
                   activeModal === 'authRequired' ? 'Authentication Required' :
+                  activeModal === 'different' ? 'Why Are We Different? — Core Intelligence' :
                   activeModal === 'workflow' ? 'Swarm Workflow Architecture' :
                   activeModal === 'history' ? 'Simulation History Database' :
                   'System Status & Architecture'
                 }}
               </span>
             </div>
+
+            <!-- Quick Modal Navigation Tabs -->
+            <div v-if="activeModal !== 'authRequired'" class="flex items-center gap-1.5 overflow-x-auto max-w-full">
+              <button
+                type="button"
+                @click="activeModal = 'different'"
+                :class="[
+                  'px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer whitespace-nowrap',
+                  activeModal === 'different'
+                    ? 'bg-white text-black font-bold shadow-md shadow-black/80'
+                    : 'bg-black/60 text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                ]"
+              >
+                Why Are We Different?
+              </button>
+              <button
+                type="button"
+                @click="activeModal = 'workflow'"
+                :class="[
+                  'px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer whitespace-nowrap',
+                  activeModal === 'workflow'
+                    ? 'bg-white text-black font-bold shadow-md shadow-black/80'
+                    : 'bg-black/60 text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                ]"
+              >
+                Workflow
+              </button>
+              <button
+                type="button"
+                @click="activeModal = 'history'"
+                :class="[
+                  'px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer whitespace-nowrap',
+                  activeModal === 'history'
+                    ? 'bg-white text-black font-bold shadow-md shadow-black/80'
+                    : 'bg-black/60 text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                ]"
+              >
+                History
+              </button>
+              <button
+                type="button"
+                @click="activeModal = 'status'"
+                :class="[
+                  'px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer whitespace-nowrap',
+                  activeModal === 'status'
+                    ? 'bg-white text-black font-bold shadow-md shadow-black/80'
+                    : 'bg-black/60 text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                ]"
+              >
+                Architecture
+              </button>
+              <button
+                type="button"
+                @click="activeModal = 'console'"
+                :class="[
+                  'px-3 py-1 rounded-full text-xs font-mono transition-all cursor-pointer whitespace-nowrap',
+                  activeModal === 'console'
+                    ? 'bg-white text-black font-bold shadow-md shadow-black/80'
+                    : 'bg-black/60 text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                ]"
+              >
+                Console
+              </button>
+              <button 
+                @click="activeModal = null"
+                class="modal-close-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all cursor-pointer ml-1 shrink-0"
+                aria-label="Close"
+              >
+                &times;
+              </button>
+            </div>
+
             <button 
+              v-else
               @click="activeModal = null"
               class="modal-close-btn w-8 h-8 rounded-full flex items-center justify-center text-lg transition-all cursor-pointer"
               aria-label="Close"
@@ -370,12 +451,12 @@
               <!-- Pulsing Symbiote Badge -->
               <div class="relative w-18 h-18 sm:w-22 sm:h-22 flex items-center justify-center">
                 <div class="absolute inset-0 rounded-full bg-white/10 border border-white/20 animate-ping opacity-20"></div>
-                <div class="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-black border border-white/25 flex items-center justify-center shadow-[0_0_35px_rgba(255,255,255,0.2)]">
+                <div class="relative w-16 h-16 sm:w-18 sm:h-18 rounded-full bg-black border border-white/25 flex items-center justify-center shadow-[0_12px_32px_rgba(0,0,0,0.9)]">
                   <!-- User's Exact White Hand Symbol -->
                   <img
                     src="../assets/icons/white_hand.png"
                     alt="Stop"
-                    class="w-9 h-9 sm:w-11 sm:h-11 object-contain select-none filter drop-shadow-[0_0_16px_rgba(255,255,255,0.6)]"
+                    class="w-9 h-9 sm:w-11 sm:h-11 object-contain select-none filter drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]"
                   />
                 </div>
               </div>
@@ -451,7 +532,7 @@
                   <img
                     src="../assets/icons/white_hand.png"
                     alt="Guest"
-                    class="w-5 h-5 object-contain select-none shrink-0 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
+                    class="w-5 h-5 object-contain select-none shrink-0 filter drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]"
                   />
                   <div>
                     <span class="text-xs sm:text-sm font-semibold text-white">Guest Demo Mode</span>
@@ -484,7 +565,7 @@
                     :class="[
                       'px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5',
                       inputMode === 'files'
-                        ? 'bg-white text-black font-bold shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                        ? 'bg-white text-black font-bold shadow-md shadow-black/80'
                         : 'bg-black text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
                     ]"
                   >
@@ -500,7 +581,7 @@
                     :class="[
                       'px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5',
                       inputMode === 'direct'
-                        ? 'bg-white text-black font-bold shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                        ? 'bg-white text-black font-bold shadow-md shadow-black/80'
                         : 'bg-black text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
                     ]"
                   >
@@ -570,7 +651,7 @@
                         :class="[
                           'w-8 h-8 rounded-full bg-black border flex items-center justify-center transition-all cursor-pointer',
                           isRecordingVoice && activeVoiceTarget === 'direct'
-                            ? 'border-white shadow-[0_0_12px_rgba(255,255,255,0.7)] ring-2 ring-white/30'
+                            ? 'border-white shadow-lg shadow-black/90 ring-1 ring-white/40'
                             : 'border-white/30 hover:border-white/80 hover:bg-neutral-900'
                         ]"
                         :title="isRecordingVoice ? 'Click to stop listening' : 'Voice input'"
@@ -626,7 +707,7 @@
                       :class="[
                         'w-8 h-8 rounded-full bg-black border flex items-center justify-center transition-all cursor-pointer',
                         isRecordingVoice && activeVoiceTarget === 'prompt'
-                          ? 'border-white shadow-[0_0_12px_rgba(255,255,255,0.7)] ring-2 ring-white/30'
+                          ? 'border-white shadow-lg shadow-black/90 ring-1 ring-white/40'
                           : 'border-white/30 hover:border-white/80 hover:bg-neutral-900'
                       ]"
                       :title="isRecordingVoice ? 'Click to stop listening' : 'Voice input'"
@@ -652,6 +733,38 @@
                 </div>
               </div>
 
+              <!-- Super Speed Mode Switch (Strict Monochrome Cyber Theme) -->
+              <div class="console-section p-3 rounded-xl bg-black border border-white/20 transition-all hover:border-white/40 flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 text-left">
+                  <div class="w-7 h-7 rounded-lg bg-neutral-900 border border-white/20 flex items-center justify-center shrink-0">
+                    <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2">
+                      <span class="text-xs font-semibold text-white tracking-wide">SUPER SPEED MODE</span>
+                      <span v-if="isSuperSpeed" class="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white text-black font-bold">1-2 MIN</span>
+                    </div>
+                    <span class="block text-[11px] text-neutral-400 font-mono">
+                      {{ isSuperSpeed ? '12-15 core entities & 2-3 rounds (~1-2 min total)' : 'Full swarm scale (standard rounds & all entities)' }}
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  @click="isSuperSpeed = !isSuperSpeed"
+                  :aria-pressed="isSuperSpeed"
+                  class="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border border-white/30 transition-colors duration-200 ease-in-out focus:outline-none"
+                  :class="isSuperSpeed ? 'bg-white' : 'bg-neutral-900'"
+                >
+                  <span
+                    class="pointer-events-none inline-block h-4 w-4 transform rounded-full transition duration-200 ease-in-out mt-[3px] ml-[3px]"
+                    :class="isSuperSpeed ? 'translate-x-5 bg-black' : 'translate-x-0 bg-neutral-400'"
+                  />
+                </button>
+              </div>
+
               <!-- Start Engine Button -->
               <div class="console-section btn-section flex flex-col gap-3">
                 <button 
@@ -664,6 +777,11 @@
                   <span class="btn-arrow">&rarr;</span>
                 </button>
               </div>
+            </div>
+
+            <!-- Modal Content: Why Are We Different? -->
+            <div v-if="activeModal === 'different'" class="why-different-tab-content">
+              <WhyDifferent />
             </div>
 
             <!-- Modal Content 2: Workflow Sequence -->
@@ -748,6 +866,7 @@
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import HistoryDatabase from '../components/HistoryDatabase.vue'
+import WhyDifferent from '../components/WhyDifferent.vue'
 import VenomIntro from '../components/VenomIntro.vue'
 import UserAuthButton from '../components/UserAuthButton.vue'
 import { useAuth } from '../store/auth'
@@ -913,6 +1032,7 @@ import { start16kHzRecording, transcribeAudio, startLiveSpeechPreview } from '@/
 const fileInput = ref(null)
 const inputMode = ref('files') // 'files' | 'direct'
 const directTextInput = ref('')
+const isSuperSpeed = ref(sessionStorage.getItem('lokantra_super_speed') === 'true')
 
 
 const ALL_SUPPORTED_EXTS = [
@@ -1111,8 +1231,10 @@ const startSimulation = () => {
     finalFiles.push(directFile)
   }
   
+  sessionStorage.setItem('lokantra_super_speed', isSuperSpeed.value ? 'true' : 'false')
+
   import('../store/pendingUpload.js').then(({ setPendingUpload }) => {
-    setPendingUpload(finalFiles, req, directTextInput.value.trim() || req)
+    setPendingUpload(finalFiles, req, directTextInput.value.trim() || req, isSuperSpeed.value)
     router.push({
       name: 'Process',
       params: { projectId: 'new' }
@@ -1221,7 +1343,7 @@ onMounted(() => {
   font-weight: 600;
   letter-spacing: 0.14em;
   color: #e2e8f0;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.85);
 }
 
 .symbiote-dot {
@@ -1229,7 +1351,7 @@ onMounted(() => {
   height: 6px;
   border-radius: 50%;
   background: #ffffff;
-  box-shadow: 0 0 10px #ffffff, 0 0 18px rgba(255, 255, 255, 0.85);
+  /* white glow removed */
   animation: symbiote-pulse 2s ease-in-out infinite;
 }
 
@@ -1276,7 +1398,7 @@ onMounted(() => {
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   animation: silver-shimmer 7s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  filter: drop-shadow(0 0 25px rgba(255, 255, 255, 0.28)) drop-shadow(0 2px 14px rgba(0, 0, 0, 0.9));
+  filter: drop-shadow(0 2px 14px rgba(0, 0, 0, 0.95));
   display: inline-block;
 }
 
@@ -1351,9 +1473,7 @@ onMounted(() => {
   white-space: nowrap;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  box-shadow:
-    0 10px 25px -6px rgba(0, 0, 0, 0.8),
-    inset 0 1px 1px rgba(255, 255, 255, 0.14);
+  box-shadow: 0 10px 25px -6px rgba(0, 0, 0, 0.8);
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
@@ -1365,10 +1485,7 @@ onMounted(() => {
   border-color: rgba(255, 255, 255, 0.4);
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow:
-    0 16px 32px -8px rgba(0, 0, 0, 0.9),
-    0 0 20px rgba(255, 255, 255, 0.12),
-    inset 0 1px 2px rgba(255, 255, 255, 0.25);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.95);
 }
 
 .venom-pill-btn-secondary:active {
@@ -1404,8 +1521,7 @@ onMounted(() => {
   border-radius: 24px !important;
   box-shadow:
     0 40px 100px -20px rgba(0, 0, 0, 1),
-    0 0 60px rgba(0, 0, 0, 0.95),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18) !important;
+    0 0 60px rgba(0, 0, 0, 0.95) !important;
   color: #f5f5f5 !important;
 }
 
@@ -1441,7 +1557,7 @@ onMounted(() => {
   background: #ffffff;
   color: #000000;
   border-color: #ffffff;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.7);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.85);
 }
 
 /* Venom Web and Crack animations */
@@ -1476,8 +1592,8 @@ onMounted(() => {
 }
 
 @keyframes crack-pulse {
-  0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.1)); }
-  50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.28)); }
+  0%, 100% { opacity: 0.85; filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5)); }
+  50% { opacity: 1; filter: drop-shadow(0 0 8px rgba(0, 0, 0, 0.8)); }
 }
 
 /* Left panel / System Status */
@@ -1493,7 +1609,7 @@ onMounted(() => {
 
 .status-dot {
   color: #ffffff;
-  text-shadow: 0 0 8px #ffffff;
+  text-shadow: none;
   font-size: 0.8rem;
 }
 
@@ -1531,7 +1647,7 @@ onMounted(() => {
   font-weight: 600;
   margin-bottom: 5px;
   color: #ffffff;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.25);
+  text-shadow: none;
 }
 
 .metric-label {
@@ -1672,7 +1788,7 @@ onMounted(() => {
 .upload-zone:hover, .upload-zone.drag-over {
   background: rgba(20, 20, 20, 0.85);
   border-color: rgba(255, 255, 255, 0.5);
-  box-shadow: 0 0 30px rgba(255, 255, 255, 0.08), inset 0 0 20px rgba(255, 255, 255, 0.04);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.85);
 }
 
 .upload-placeholder {
@@ -1691,7 +1807,7 @@ onMounted(() => {
   margin: 0 auto 12px;
   color: #ffffff;
   font-size: 1.2rem;
-  box-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.6);
 }
 
 .upload-title {
@@ -1743,7 +1859,7 @@ onMounted(() => {
 
 .remove-btn:hover {
   color: #ffffff;
-  text-shadow: 0 0 8px #ffffff;
+  text-shadow: none;
 }
 
 .console-divider {
@@ -1779,7 +1895,7 @@ onMounted(() => {
 
 .input-wrapper:focus-within {
   border-color: rgba(255, 255, 255, 0.45);
-  box-shadow: 0 0 25px rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.85);
 }
 
 .code-input {
@@ -1833,9 +1949,7 @@ onMounted(() => {
   letter-spacing: 1px;
   position: relative;
   overflow: hidden;
-  box-shadow:
-    0 16px 32px -8px rgba(0, 0, 0, 0.95),
-    inset 0 1px 2px rgba(255, 255, 255, 0.35);
+  box-shadow: 0 16px 32px -8px rgba(0, 0, 0, 0.95);
 }
 
 .start-engine-btn:not(:disabled) {
@@ -1844,10 +1958,7 @@ onMounted(() => {
 
 .start-engine-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow:
-    0 22px 40px -8px rgba(0, 0, 0, 1),
-    0 0 25px rgba(255, 255, 255, 0.2),
-    inset 0 1px 2px rgba(255, 255, 255, 0.45);
+  box-shadow: 0 22px 40px -8px rgba(0, 0, 0, 1);
 }
 
 .start-engine-btn:disabled {
@@ -1860,9 +1971,9 @@ onMounted(() => {
 }
 
 @keyframes pulse-border {
-  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.15); }
-  70% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
-  100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+  0% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.5); }
+  70% { box-shadow: 0 0 0 8px rgba(0, 0, 0, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(0, 0, 0, 0); }
 }
 
 .quick-demo-btn {
