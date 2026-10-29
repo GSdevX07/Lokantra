@@ -65,20 +65,13 @@ class Config:
     ALLOWED_EXTENSIONS = {
         'pdf', 'md', 'markdown', 'txt', 'rtf',
         'docx', 'doc',
-        'xlsx', 'xls', 'csv', 'tsv',
-        'json', 'jsonl', 'xml', 'html', 'htm', 'yaml', 'yml',
-        'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'svg',
-        'py', 'js', 'ts', 'sql', 'sh'
+        'png', 'jpg', 'jpeg', 'webp', 'bmp'
     }
 
-    # Sarvam AI Voice Input configuration (PRIMARY)
+    # Voice Input configuration (Sarvam AI Saaras)
     SARVAM_API_KEY = os.environ.get('SARVAM_API_KEY')
     SARVAM_API_URL = os.environ.get('SARVAM_API_URL', 'https://api.sarvam.ai/speech-to-text')
     SARVAM_MODEL = os.environ.get('SARVAM_MODEL', 'saaras:v4')
-
-    # Wispr Flow Voice Input configuration (Fallback)
-    WISPR_FLOW_API_KEY = os.environ.get('WISPR_FLOW_API_KEY')
-    WISPR_FLOW_API_URL = os.environ.get('WISPR_FLOW_API_URL', 'https://platform-api.wisprflow.ai/api/v1/dash/api')
     
     # Text processing configuration
     DEFAULT_CHUNK_SIZE = 500  # Default chunk size

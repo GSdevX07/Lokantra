@@ -106,10 +106,9 @@
 
     <!-- Empty State -->
     <div v-else-if="projects.length === 0" class="empty-state">
-      <span class="empty-icon">📁</span>
-      <span class="empty-text">
+      <p class="empty-text">
         {{ isAuthenticated ? 'No simulations run yet by this account. Start a simulation to see it in your history.' : 'Sign in to view your simulation history database.' }}
-      </span>
+      </p>
     </div>
 
     <!-- History Replay Details Modal -->
@@ -882,18 +881,33 @@ onUnmounted(() => {
 }
 
 /* Empty state */
-.empty-state, .loading-state {
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 60px 24px;
+  color: #a3a3a3;
+  width: 100%;
+}
+
+.empty-text {
+  text-align: center;
+  max-width: 480px;
+  margin: 0 auto;
+  line-height: 1.65;
+  font-size: 0.875rem;
+  color: #a3a3a3;
+}
+
+.loading-state {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 14px;
   padding: 48px;
   color: #64748b;
-}
-
-.empty-icon {
-  font-size: 2rem;
-  opacity: 0.5;
 }
 
 .loading-spinner {

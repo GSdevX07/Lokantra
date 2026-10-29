@@ -87,23 +87,6 @@
           </button>
 
           <button
-            @click="openConsoleWithMic"
-            class="venom-pill-btn-secondary !border-red-500/50 hover:!border-red-400 !bg-red-950/40 hover:!bg-red-900/50 text-red-200 hover:text-white flex items-center gap-2 transition-all shadow-[0_0_15px_rgba(239,68,68,0.25)]"
-            title="Click to dictate your policy idea using Sarvam AI"
-          >
-            <span class="relative flex h-2 w-2">
-              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-              <span class="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-            </span>
-            <svg class="w-4 h-4 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-              <line x1="12" x2="12" y1="19" y2="22"/>
-            </svg>
-            <span>🎙️ Speak Idea (Sarvam AI)</span>
-          </button>
-
-          <button
             @click="activeModal = 'workflow'"
             class="venom-pill-btn-secondary"
           >
@@ -461,151 +444,77 @@
             </div>
 
             <!-- Modal Content 1: Simulation Console -->
-            <div v-if="activeModal === 'console'" class="console-box space-y-5">
-              <!-- Guest Info Banner (Non-blocking) -->
-              <div v-if="!isAuthenticated" class="p-3.5 rounded-2xl bg-[#0d0d0d]/90 border border-white/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
+            <div v-if="activeModal === 'console'" class="console-box space-y-4">
+              <!-- Guest Info Banner (Monochrome website theme) -->
+              <div v-if="!isAuthenticated" class="p-3.5 rounded-2xl bg-black border border-white/20 backdrop-blur-xl flex flex-col sm:flex-row items-center justify-between gap-3 shadow-[0_4px_24px_rgba(0,0,0,0.8)]">
                 <div class="flex items-center gap-3 text-left">
                   <img
                     src="../assets/icons/white_hand.png"
-                    alt="Guest Mode"
+                    alt="Guest"
                     class="w-5 h-5 object-contain select-none shrink-0 filter drop-shadow-[0_0_8px_rgba(255,255,255,0.4)]"
                   />
                   <div>
-                    <span class="text-xs sm:text-sm font-semibold text-neutral-200">✨ Guest Demo Mode Active</span>
-                    <span class="block text-[11px] text-neutral-400">Type or speak any idea below to simulate freely. Sign in anytime to persist project history to cloud!</span>
+                    <span class="text-xs sm:text-sm font-semibold text-white">Guest Demo Mode</span>
+                    <span class="block text-[11px] text-neutral-400">Run simulations freely. Sign in with Google anytime to sync history.</span>
                   </div>
                 </div>
                 <button
                   @click="handleModalSignIn"
                   type="button"
                   :disabled="isSigningInModal"
-                  class="px-4 py-1.5 rounded-full bg-white/10 hover:bg-white/20 border border-white/25 text-white font-bold text-xs transition-all shadow shrink-0 cursor-pointer flex items-center gap-1.5"
+                  class="px-4 py-1.5 rounded-full bg-black hover:bg-neutral-900 border border-white/30 hover:border-white/60 text-white font-bold text-xs transition-all shadow shrink-0 cursor-pointer flex items-center gap-1.5"
                 >
-                  <span>Sign in with Google</span>
+                  <span>Sign in</span>
                   <span>&rarr;</span>
                 </button>
               </div>
 
-              <!-- STEP 1: IDEA / POLICY / SCENARIO INPUT (THE CORE REQUIREMENT) -->
-              <div class="console-section bg-gradient-to-b from-white/[0.05] to-transparent p-5 rounded-2xl border border-white/15 shadow-xl">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-                  <div>
-                    <div class="flex items-center gap-2">
-                      <span class="w-3 h-3 rounded-full bg-emerald-400 shadow-[0_0_10px_#34d399] animate-pulse"></span>
-                      <h3 class="text-base sm:text-lg font-bold text-white tracking-wide">
-                        1. Enter Your Policy, Idea, or Simulation Scenario
-                      </h3>
-                      <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                        Primary Input
-                      </span>
-                    </div>
-                    <p class="text-xs text-neutral-400 mt-1">
-                      Type your policy proposal, what-if question, or market hypothesis below, or click the mic to speak:
-                    </p>
-                  </div>
+              <!-- Reality Seed Input Area: Normal upload box, click to show text thing -->
+              <div class="console-section">
+                <div class="console-header flex items-center justify-between mb-2.5">
+                  <span class="console-label">{{ $t('home.realitySeed') }}</span>
+                  <span class="console-meta text-xs text-neutral-400 font-mono">PDF, Word, Images, TXT</span>
+                </div>
 
-                  <!-- SARVAM AI SPEECH-TO-TEXT BUTTON -->
+                <!-- Mode Toggle Tabs (Normal upload by default, click for text thing) -->
+                <div class="flex items-center gap-2 mb-3">
                   <button
                     type="button"
-                    @click="toggleVoiceRecording('idea')"
+                    @click="inputMode = 'files'"
                     :class="[
-                      'px-4 py-2 rounded-xl text-xs font-mono font-bold transition-all flex items-center gap-2.5 cursor-pointer shadow-lg select-none shrink-0',
-                      isRecordingVoice && activeVoiceTarget === 'idea'
-                        ? 'bg-red-600 text-white animate-pulse ring-4 ring-red-500/50 shadow-[0_0_24px_#ef4444]'
-                        : 'bg-gradient-to-r from-red-600 to-amber-600 hover:from-red-500 hover:to-amber-500 text-white border border-red-400/50 hover:scale-[1.02]'
+                      'px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5',
+                      inputMode === 'files'
+                        ? 'bg-white text-black font-bold shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                        : 'bg-black text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
                     ]"
-                    :title="isRecordingVoice ? 'Click to finish speaking' : 'Speak your policy idea using Sarvam AI Saaras model (Supports Indian languages & English)'"
                   >
-                    <span class="relative flex h-2.5 w-2.5">
-                      <span v-if="isRecordingVoice && activeVoiceTarget === 'idea'" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
-                      <span class="relative inline-flex rounded-full h-2.5 w-2.5" :class="isRecordingVoice && activeVoiceTarget === 'idea' ? 'bg-white' : 'bg-red-200'"></span>
+                    <span>Upload</span>
+                    <span v-if="files.length" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black text-white font-bold">
+                      {{ files.length }}
                     </span>
-                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
-                      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                      <line x1="12" x2="12" y1="19" y2="22"/>
-                    </svg>
-                    <span>{{ isRecordingVoice && activeVoiceTarget === 'idea' ? `Listening (${recordingSeconds}s / 30s) • Stop` : '🎙️ Speak Idea (Sarvam AI)' }}</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    @click="inputMode = 'direct'"
+                    :class="[
+                      'px-3.5 py-1.5 rounded-lg text-xs font-mono transition-all cursor-pointer flex items-center gap-1.5',
+                      inputMode === 'direct'
+                        ? 'bg-white text-black font-bold shadow-[0_0_12px_rgba(255,255,255,0.3)]'
+                        : 'bg-black text-neutral-400 hover:text-white hover:bg-neutral-900 border border-white/15'
+                    ]"
+                  >
+                    <span>Text</span>
+                    <span v-if="directTextInput.trim()" class="ml-1 px-1.5 py-0.5 rounded-full text-[10px] bg-black text-white font-bold">
+                      Ready
+                    </span>
                   </button>
                 </div>
 
-                <!-- Active Voice Recording Bar -->
-                <div v-if="isRecordingVoice && activeVoiceTarget === 'idea'" class="p-3.5 mb-3 rounded-xl bg-red-950/60 border border-red-500/60 flex items-center justify-between gap-3 text-xs font-mono text-red-100 shadow-[0_0_20px_rgba(239,68,68,0.3)]">
-                  <div class="flex items-center gap-3">
-                    <span class="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_12px_#ef4444] animate-ping"></span>
-                    <div>
-                      <span class="font-bold text-white">Recording audio for Sarvam AI Saaras Engine ({{ recordingSeconds }}s / 30s)...</span>
-                      <span class="block text-[11px] text-red-300">Speak clearly in English, Hindi, or any Indian regional language</span>
-                      <span v-if="livePreviewText" class="block text-[11px] text-amber-200 italic mt-0.5">&ldquo;{{ livePreviewText }}&rdquo;</span>
-                    </div>
-                  </div>
-                  <button @click="stopCurrentVoiceRecording" class="px-3.5 py-1.5 rounded-lg bg-red-600 hover:bg-red-500 text-white text-xs font-bold cursor-pointer shadow">
-                    Finish & Transcribe &rarr;
-                  </button>
-                </div>
-
-                <!-- Processing State -->
-                <div v-else-if="voiceProcessing" class="p-3 mb-3 rounded-xl bg-amber-950/40 border border-amber-500/40 flex items-center gap-3 text-xs font-mono text-amber-200">
-                  <span class="w-4 h-4 border-2 border-amber-400 border-t-transparent rounded-full animate-spin"></span>
-                  <span>Transcribing with Sarvam AI Saaras Neural Engine... Please wait</span>
-                </div>
-
-                <!-- Success Feedback -->
-                <div v-else-if="voiceFeedbackMessage" class="p-2.5 mb-3 rounded-xl bg-emerald-950/40 border border-emerald-500/40 flex items-center justify-between text-xs font-mono text-emerald-300">
-                  <span>{{ voiceFeedbackMessage }}</span>
-                  <button @click="voiceFeedbackMessage = ''" class="text-neutral-400 hover:text-white">&times;</button>
-                </div>
-
-                <!-- Idea Textarea -->
-                <div class="input-wrapper relative">
-                  <textarea
-                    ref="ideaInputRef"
-                    v-model="formData.simulationRequirement"
-                    class="code-input !min-h-[140px] text-sm leading-relaxed"
-                    placeholder="Type or speak your simulation idea here... Example:
-• 'Predict public reaction and business disruption if 28% GST is implemented on online gaming'
-• 'Simulate multi-agent social consensus on mandatory EV conversion for delivery fleets in Bengaluru'
-• 'What happens if a new national policy mandates open-weight AI model registration?'"
-                    rows="5"
-                    :disabled="loading"
-                  ></textarea>
-                  
-                  <div class="flex items-center justify-between mt-2 px-1 text-[11px] text-neutral-400 font-mono">
-                    <span v-if="formData.simulationRequirement.trim()" class="text-emerald-400 font-semibold flex items-center gap-1">
-                      <span>✓</span> Idea ready to simulate ({{ formData.simulationRequirement.length }} chars)
-                    </span>
-                    <span v-else class="text-neutral-500">
-                      * Type your idea above or click '🎙️ Speak Idea' to speak
-                    </span>
-                    <span class="text-neutral-400">Powered by Sarvam AI Saaras</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- STEP 2: SUPPORTING DOCUMENTS & FILES (OPTIONAL) -->
-              <div class="console-section p-4 rounded-2xl bg-white/[0.02] border border-white/10">
-                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-2">
-                  <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-neutral-400"></span>
-                    <h4 class="text-xs sm:text-sm font-bold text-neutral-200 tracking-wide">
-                      2. Attach Supporting Documents & Data (Optional)
-                    </h4>
-                    <span class="px-2 py-0.5 rounded text-[10px] font-mono text-neutral-400 bg-white/5 border border-white/10">
-                      Optional
-                    </span>
-                  </div>
-                  <span class="text-[11px] text-neutral-400 font-mono">
-                    PDF, Word, Excel, CSV, JSON, Images, TXT
-                  </span>
-                </div>
-
-                <p class="text-xs text-neutral-400 mb-2">
-                  Your idea typed above is already 100% sufficient to run! Upload documents only if you have specific policy whitepapers, reports, or spreadsheets to inject.
-                </p>
-
-                <!-- Upload Drop Zone -->
+                <!-- Normal Upload Box -->
                 <div 
-                  class="upload-zone !min-h-[100px] !p-4"
+                  v-if="inputMode === 'files'"
+                  class="upload-zone"
                   :class="{ 'drag-over': isDragOver, 'has-files': files.length > 0 }"
                   @dragover.prevent="handleDragOver"
                   @dragleave.prevent="handleDragLeave"
@@ -616,18 +525,16 @@
                     ref="fileInput"
                     type="file"
                     multiple
-                    accept=".pdf,.docx,.doc,.txt,.md,.markdown,.rtf,.xlsx,.xls,.csv,.tsv,.json,.yaml,.yml,.xml,.html,.png,.jpg,.jpeg,.webp,.bmp,.svg,.py,.js,.ts,.sql"
+                    accept=".pdf,.docx,.doc,.txt,.md,.markdown,.rtf,.png,.jpg,.jpeg,.webp,.bmp"
                     @change="handleFileSelect"
                     style="display: none"
                     :disabled="loading"
                   />
                   
-                  <div v-if="files.length === 0" class="upload-placeholder p-2 flex items-center justify-center gap-3">
-                    <div class="upload-icon text-lg">&uarr;</div>
-                    <div class="text-left">
-                      <div class="upload-title text-xs font-semibold">{{ $t('home.dragToUpload') }}</div>
-                      <div class="upload-hint text-[11px] text-neutral-400">Click to browse or drop PDF, Excel, Word, or images</div>
-                    </div>
+                  <div v-if="files.length === 0" class="upload-placeholder p-4">
+                    <div class="upload-icon">&uarr;</div>
+                    <div class="upload-title">{{ $t('home.dragToUpload') }}</div>
+                    <div class="upload-hint">Upload PDF, Word, Images, or TXT</div>
                   </div>
                   
                   <div v-else class="file-list">
@@ -639,30 +546,122 @@
                     </div>
                   </div>
                 </div>
+
+                <!-- Direct Text Input (Comes when clicked) with Simple White-Border Black Mic Button -->
+                <div v-else class="direct-text-wrapper space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-xs text-neutral-400 font-mono">Type or paste scenario details, notes, or data:</span>
+                    
+                    <div class="flex items-center gap-2">
+                      <span v-if="isRecordingVoice && activeVoiceTarget === 'direct'" class="text-xs font-mono text-neutral-300 animate-pulse">
+                        Listening...
+                      </span>
+                      <span v-else-if="voiceProcessing && activeVoiceTarget === 'direct'" class="text-xs font-mono text-neutral-400">
+                        Transcribing...
+                      </span>
+                      <span v-else-if="voiceFeedbackMessage && activeVoiceTarget === 'direct'" class="text-xs font-mono text-neutral-300">
+                        {{ voiceFeedbackMessage }}
+                      </span>
+
+                      <!-- SIMPLE MICROPHONE SYMBOL (Always microphone icon, white border, total black) -->
+                      <button
+                        type="button"
+                        @click="toggleVoiceRecording('direct')"
+                        :class="[
+                          'w-8 h-8 rounded-full bg-black border flex items-center justify-center transition-all cursor-pointer',
+                          isRecordingVoice && activeVoiceTarget === 'direct'
+                            ? 'border-white shadow-[0_0_12px_rgba(255,255,255,0.7)] ring-2 ring-white/30'
+                            : 'border-white/30 hover:border-white/80 hover:bg-neutral-900'
+                        ]"
+                        :title="isRecordingVoice ? 'Click to stop listening' : 'Voice input'"
+                      >
+                        <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                          <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                          <line x1="12" x2="12" y1="19" y2="22"/>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div class="input-wrapper">
+                    <textarea
+                      v-model="directTextInput"
+                      class="code-input min-h-[140px]"
+                      placeholder="Type or paste your scenario, market observations, behavioral constraints, or simulation context here directly... (No document upload required!)"
+                      :disabled="loading"
+                    ></textarea>
+                  </div>
+                  <div class="flex justify-between items-center text-[11px] text-neutral-400 font-mono px-1">
+                    <span>{{ directTextInput.length }} chars entered</span>
+                    <span v-if="directTextInput.trim()" class="text-neutral-200 font-semibold">&#10003; Ready without document</span>
+                  </div>
+                </div>
               </div>
 
-              <!-- STEP 3: LAUNCH ENGINE BUTTON -->
-              <div class="console-section btn-section flex flex-col gap-3 pt-2">
+              <!-- Divider -->
+              <div class="console-divider">
+                <span>{{ $t('home.inputParams') }}</span>
+              </div>
+
+              <!-- Simulation Requirement / Prompt Section with Simple White-Border Black Mic Button -->
+              <div class="console-section">
+                <div class="console-header flex items-center justify-between mb-2">
+                  <span class="console-label">{{ $t('home.simulationPrompt') }}</span>
+                  <div class="flex items-center gap-2">
+                    <span v-if="isRecordingVoice && activeVoiceTarget === 'prompt'" class="text-xs font-mono text-neutral-300 animate-pulse">
+                      Listening...
+                    </span>
+                    <span v-else-if="voiceProcessing && activeVoiceTarget === 'prompt'" class="text-xs font-mono text-neutral-400">
+                      Transcribing...
+                    </span>
+                    <span v-else-if="voiceFeedbackMessage && activeVoiceTarget === 'prompt'" class="text-xs font-mono text-neutral-300">
+                      {{ voiceFeedbackMessage }}
+                    </span>
+                    
+                    <!-- SIMPLE MICROPHONE SYMBOL (Always microphone icon, white border, total black) -->
+                    <button
+                      type="button"
+                      @click="toggleVoiceRecording('prompt')"
+                      :class="[
+                        'w-8 h-8 rounded-full bg-black border flex items-center justify-center transition-all cursor-pointer',
+                        isRecordingVoice && activeVoiceTarget === 'prompt'
+                          ? 'border-white shadow-[0_0_12px_rgba(255,255,255,0.7)] ring-2 ring-white/30'
+                          : 'border-white/30 hover:border-white/80 hover:bg-neutral-900'
+                      ]"
+                      :title="isRecordingVoice ? 'Click to stop listening' : 'Voice input'"
+                    >
+                      <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" x2="12" y1="19" y2="22"/>
+                      </svg>
+                    </button>
+                  </div>
+                </div>
+
+                <div class="input-wrapper">
+                  <textarea
+                    v-model="formData.simulationRequirement" 
+                    class="code-input"
+                    :placeholder="$t('home.promptPlaceholder')"
+                    rows="4"
+                    :disabled="loading"
+                  ></textarea>
+                  <div class="model-badge">{{ $t('home.engineBadge') }}</div>
+                </div>
+              </div>
+
+              <!-- Start Engine Button -->
+              <div class="console-section btn-section flex flex-col gap-3">
                 <button 
-                  class="start-engine-btn !py-4"
+                  class="start-engine-btn"
                   @click="startSimulation"
                   :disabled="!canSubmit || loading"
                 >
-                  <span v-if="!loading" class="flex items-center justify-center gap-2 text-base font-bold">
-                    <span>🚀</span>
-                    <span>{{ $t('home.startEngine') }}</span>
-                  </span>
+                  <span v-if="!loading">{{ $t('home.startEngine') }}</span>
                   <span v-else>{{ $t('home.initializing') }}</span>
                   <span class="btn-arrow">&rarr;</span>
-                </button>
-
-                <button 
-                  v-if="!files.length && !formData.simulationRequirement.trim()"
-                  type="button"
-                  class="quick-demo-btn"
-                  @click="quickDemoSimulation"
-                >
-                  <span>✨ Don't have an idea? Click for Instant One-Click Demo Idea</span>
                 </button>
               </div>
             </div>
@@ -909,27 +908,16 @@ const files = ref([])
 const loading = ref(false)
 const error = ref('')
 const isDragOver = ref(false)
-import { start16kHzRecording, transcribeWithSarvam, startLiveSpeechPreview } from '@/utils/audioRecorder'
+import { start16kHzRecording, transcribeAudio, startLiveSpeechPreview } from '@/utils/audioRecorder'
 
 const fileInput = ref(null)
 const inputMode = ref('files') // 'files' | 'direct'
 const directTextInput = ref('')
 
-// Voice STT state
-const isRecordingVoice = ref(false)
-const activeVoiceTarget = ref('prompt') // 'prompt' | 'direct'
-const voiceProcessing = ref(false)
-const voiceFeedbackMessage = ref('')
-let activeRecorderInstance = null
-let activeSpeechPreview = null
-let livePreviewText = ''
 
 const ALL_SUPPORTED_EXTS = [
   'pdf', 'docx', 'doc', 'txt', 'md', 'markdown', 'rtf',
-  'xlsx', 'xls', 'csv', 'tsv',
-  'json', 'jsonl', 'xml', 'html', 'htm', 'yaml', 'yml',
-  'png', 'jpg', 'jpeg', 'webp', 'bmp', 'tiff', 'svg',
-  'py', 'js', 'ts', 'sql', 'sh'
+  'png', 'jpg', 'jpeg', 'webp', 'bmp'
 ]
 
 const canSubmit = computed(() => {
@@ -981,22 +969,18 @@ const removeFile = (index) => {
 
 const getFileBadgeLabel = (filename) => {
   const ext = filename?.split('.').pop()?.toLowerCase() || ''
-  if (['png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg', 'tiff'].includes(ext)) return 'IMAGE'
-  if (['xlsx', 'xls', 'csv', 'tsv'].includes(ext)) return 'DATA'
+  if (['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(ext)) return 'IMAGE'
   if (['docx', 'doc'].includes(ext)) return 'DOC'
   if (['pdf'].includes(ext)) return 'PDF'
-  if (['json', 'yaml', 'yml', 'xml'].includes(ext)) return 'JSON'
-  if (['py', 'js', 'ts', 'sql', 'sh'].includes(ext)) return 'CODE'
+  if (['txt', 'md', 'markdown', 'rtf'].includes(ext)) return 'TXT'
   return ext.toUpperCase() || 'FILE'
 }
 
 const getFileBadgeClass = (filename) => {
   const ext = filename?.split('.').pop()?.toLowerCase() || ''
-  if (['png', 'jpg', 'jpeg', 'webp', 'bmp', 'svg'].includes(ext)) return 'badge-image'
-  if (['xlsx', 'xls', 'csv', 'tsv'].includes(ext)) return 'badge-data'
+  if (['png', 'jpg', 'jpeg', 'webp', 'bmp'].includes(ext)) return 'badge-image'
   if (['docx', 'doc'].includes(ext)) return 'badge-doc'
   if (['pdf'].includes(ext)) return 'badge-pdf'
-  if (['json', 'yaml', 'yml', 'xml'].includes(ext)) return 'badge-json'
   return 'badge-default'
 }
 
@@ -1007,11 +991,16 @@ const formatFileSize = (bytes) => {
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
-// Sarvam AI Saaras Voice STT logic
-const recordingSeconds = ref(0)
-let recordingTimer = null
+// Voice STT logic
+const isRecordingVoice = ref(false)
+const activeVoiceTarget = ref('prompt') // 'prompt' | 'direct'
+const voiceProcessing = ref(false)
+const voiceFeedbackMessage = ref('')
+let activeRecorderInstance = null
+let activeSpeechPreview = null
+let livePreviewText = ''
 
-const toggleVoiceRecording = async (target = 'idea') => {
+const toggleVoiceRecording = async (target = 'prompt') => {
   if (isRecordingVoice.value) {
     await stopCurrentVoiceRecording()
     return
@@ -1019,44 +1008,26 @@ const toggleVoiceRecording = async (target = 'idea') => {
   startVoiceRecording(target)
 }
 
-const startVoiceRecording = async (target = 'idea') => {
+const startVoiceRecording = async (target = 'prompt') => {
   try {
     activeVoiceTarget.value = target
     voiceFeedbackMessage.value = ''
     livePreviewText = ''
-    recordingSeconds.value = 0
     
     activeRecorderInstance = await start16kHzRecording()
     isRecordingVoice.value = true
 
-    if (recordingTimer) clearInterval(recordingTimer)
-    recordingTimer = setInterval(() => {
-      recordingSeconds.value++
-      if (recordingSeconds.value >= 29) {
-        stopCurrentVoiceRecording()
-      }
-    }, 1000)
-
-    // Also start live browser speech recognition for real-time visual feedback while recording
     activeSpeechPreview = startLiveSpeechPreview((interimText) => {
       livePreviewText = interimText
     })
   } catch (err) {
     isRecordingVoice.value = false
-    if (recordingTimer) {
-      clearInterval(recordingTimer)
-      recordingTimer = null
-    }
-    voiceFeedbackMessage.value = err.message || 'Microphone access denied'
+    voiceFeedbackMessage.value = "Sorry bro, couldn't access mic — check permissions & try again?"
     console.error('Voice recording error:', err)
   }
 }
 
 const stopCurrentVoiceRecording = async () => {
-  if (recordingTimer) {
-    clearInterval(recordingTimer)
-    recordingTimer = null
-  }
   if (!activeRecorderInstance) {
     isRecordingVoice.value = false
     return
@@ -1064,7 +1035,7 @@ const stopCurrentVoiceRecording = async () => {
 
   isRecordingVoice.value = false
   voiceProcessing.value = true
-  voiceFeedbackMessage.value = 'Transcribing with Sarvam AI Saaras Neural Engine...'
+  voiceFeedbackMessage.value = 'Transcribing...'
 
   try {
     if (activeSpeechPreview) {
@@ -1073,34 +1044,36 @@ const stopCurrentVoiceRecording = async () => {
     const result = await activeRecorderInstance.stop()
     activeRecorderInstance = null
 
-    // Call Sarvam AI backend endpoint
-    const res = await transcribeWithSarvam(result.base64, 'en-IN', 'transcribe')
+    const res = await transcribeAudio(result.base64, 'en-IN', 'transcribe')
 
     let transcribedText = ''
     if (res.success && res.text) {
       transcribedText = res.text.trim()
-      const langNotice = res.detected_language ? ` (${res.detected_language})` : ''
-      voiceFeedbackMessage.value = `✓ Transcribed via Sarvam AI${langNotice}`
-      setTimeout(() => { voiceFeedbackMessage.value = '' }, 5000)
+      voiceFeedbackMessage.value = 'Transcribed ✓'
+      setTimeout(() => { voiceFeedbackMessage.value = '' }, 3500)
     } else {
-      // If Sarvam failed, fall back to live browser speech recognition if captured
       const fallbackText = livePreviewText || activeSpeechPreview?.getFinalText()
       if (fallbackText && fallbackText.trim()) {
         transcribedText = fallbackText.trim()
-        voiceFeedbackMessage.value = 'Transcribed (Browser STT fallback)'
+        voiceFeedbackMessage.value = 'Transcribed ✓'
       } else {
-        voiceFeedbackMessage.value = res.error || 'Sarvam AI: transcription failed'
+        voiceFeedbackMessage.value = "Sorry bro, didn't catch that — speak again?"
       }
-      setTimeout(() => { voiceFeedbackMessage.value = '' }, 6000)
+      setTimeout(() => { voiceFeedbackMessage.value = '' }, 4000)
     }
 
     if (transcribedText) {
-      const current = formData.value.simulationRequirement.trim()
-      formData.value.simulationRequirement = current ? `${current} ${transcribedText}` : transcribedText
+      if (activeVoiceTarget.value === 'prompt') {
+        const current = formData.value.simulationRequirement.trim()
+        formData.value.simulationRequirement = current ? `${current} ${transcribedText}` : transcribedText
+      } else {
+        const current = directTextInput.value.trim()
+        directTextInput.value = current ? `${current}\n\n${transcribedText}` : transcribedText
+      }
     }
   } catch (err) {
     console.error('Voice stop error:', err)
-    voiceFeedbackMessage.value = 'Voice error: ' + err.message
+    voiceFeedbackMessage.value = "Sorry bro, didn't catch that — speak again?"
   } finally {
     voiceProcessing.value = false
     activeRecorderInstance = null
@@ -1108,17 +1081,7 @@ const stopCurrentVoiceRecording = async () => {
   }
 }
 
-const quickDemoSimulation = () => {
-  if (!isAuthenticated.value) {
-    activeModal.value = 'authRequired'
-    return
-  }
-  formData.value.simulationRequirement = 'Simulate autonomous swarm agent reaction to anomalous bio-tech volatility and divergent sentiment trajectories.'
-  const mockBlob = new Blob(['# Venom Reality Blueprint\n\nBio-tech market volatility and swarm multi-agent consensus dynamics.'], { type: 'text/markdown' })
-  const mockFile = new File([mockBlob], 'venom_reality_seed.md', { type: 'text/markdown' })
-  files.value = [mockFile]
-  startSimulation()
-}
+
 
 const startSimulation = () => {
   if (!canSubmit.value || loading.value) return
