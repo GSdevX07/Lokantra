@@ -17,6 +17,15 @@ os.makedirs(uploads_dir, exist_ok=True)
 os.makedirs(simulations_dir, exist_ok=True)
 os.makedirs(logs_dir, exist_ok=True)
 
+# ZeroGPU registration for Hugging Face Spaces
+try:
+    import spaces
+    @spaces.GPU
+    def _zero_gpu_init():
+        return True
+except Exception:
+    pass
+
 from app import create_app
 
 # Create Flask application instance
