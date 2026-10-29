@@ -24,7 +24,7 @@ def test_report_pdf_download_endpoint():
     app = create_app()
     client = app.test_client()
 
-    response = client.get('/api/report/report_754cee5cfe50/download?format=pdf')
+    response = client.get('/api/report/report_002fb49727e8/download?format=pdf')
     assert response.status_code == 200
     assert response.headers['Content-Type'] == 'application/pdf'
     assert b'%PDF-' in response.data[:20]

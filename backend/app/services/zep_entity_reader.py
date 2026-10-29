@@ -1,18 +1,26 @@
 """
-Zep Entity Reader and Filtering Service.
-Delegates to TigerGraphEntityReader for complete TigerGraph integration.
+Entity Reader and Filtering Service (Dual Provider: TigerGraph + Zep Cloud).
 """
 
+from ..config import Config
 from .tigergraph_entity_reader import (
     EntityNode,
     FilteredEntities,
-    TigerGraphEntityReader as ZepEntityReader,
     TigerGraphEntityReader,
 )
+from .zep_entity_reader_impl import (
+    ZepEntityReader as OriginalZepEntityReader,
+)
+
+if Config.is_tigergraph():
+    ZepEntityReader = TigerGraphEntityReader
+else:
+    ZepEntityReader = OriginalZepEntityReader
 
 __all__ = [
     "EntityNode",
     "FilteredEntities",
     "ZepEntityReader",
     "TigerGraphEntityReader",
+    "OriginalZepEntityReader",
 ]
