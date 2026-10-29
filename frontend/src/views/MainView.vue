@@ -188,6 +188,21 @@ const toggleMaximize = (target) => {
 }
 
 const handleNextStep = (params = {}) => {
+  if (currentStep.value === 2) {
+    const isSuperSpeed = sessionStorage.getItem('lokantra_super_speed') === 'true'
+    const simId = params.simulationId || projectData.value?.simulation_id
+    if (simId) {
+      router.push({
+        name: 'SimulationRun',
+        params: { simulationId: simId },
+        query: {
+          ...(isSuperSpeed ? { superSpeed: 'true' } : {}),
+          ...(params.maxRounds ? { maxRounds: params.maxRounds } : {})
+        }
+      })
+      return
+    }
+  }
   if (currentStep.value < 5) {
     currentStep.value++
     addLog(t('log.enterStep', { step: currentStep.value, name: stepNames.value[currentStep.value - 1] }))
@@ -306,6 +321,9 @@ const handleNewProject = async () => {
     if (pending.directText) {
       formData.append('direct_text', pending.directText)
     }
+    if (pending.superSpeed || sessionStorage.getItem('lokantra_super_speed') === 'true') {
+      formData.append('super_speed', 'true')
+    }
     
     const res = await generateOntology(formData)
     if (res.success) {
@@ -376,7 +394,8 @@ const startBuildGraph = async () => {
     buildProgress.value = { progress: 0, message: 'Starting build...' }
     addLog('Initiating graph build...')
     
-    const res = await buildGraph({ project_id: currentProjectId.value })
+    const isSuperSpeed = sessionStorage.getItem('lokantra_super_speed') === 'true'
+    const res = await buildGraph({ project_id: currentProjectId.value, super_speed: isSuperSpeed })
     if (res.success) {
       if (res.data.reused && res.data.graph_id) {
         currentPhase.value = 2

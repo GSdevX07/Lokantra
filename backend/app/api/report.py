@@ -74,9 +74,13 @@ def generate_report():
                 "error": "force_regenerate must be a JSON boolean",
             }), 400
         
+        super_speed = data.get('super_speed')
         # Retrieve simulation info
         manager = SimulationManager()
         state = manager.get_simulation(simulation_id)
+        if super_speed is None and state:
+            super_speed = getattr(state, 'super_speed', False)
+        super_speed = bool(super_speed)
         
         if not state:
             return jsonify({
@@ -294,7 +298,8 @@ def generate_report():
 
                     report = agent.generate_report(
                         progress_callback=progress_callback,
-                        report_id=report_id
+                        report_id=report_id,
+                        super_speed=super_speed
                     )
                     ReportManager.save_report(report)
 

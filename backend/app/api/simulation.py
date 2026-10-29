@@ -246,11 +246,13 @@ def create_simulation():
             }), 400
         
         manager = SimulationManager()
+        super_speed = bool(data.get('super_speed', getattr(project, 'super_speed', False)))
         state = manager.create_simulation(
             project_id=project_id,
             graph_id=graph_id,
             enable_twitter=data.get('enable_twitter', True),
             enable_reddit=data.get('enable_reddit', True),
+            super_speed=super_speed,
         )
         
         return jsonify({
@@ -518,7 +520,8 @@ def prepare_simulation():
                 defined_entity_types=entity_types_list,
                 enrich_with_edges=False  # Do not fetch edges for speed
             )
-            # Save entity count to state for immediate frontend access (clamp to max_agents if super_speed)
+            # Save entity count and super_speed to state for immediate frontend access
+            state.super_speed = super_speed
             if max_agents and filtered_preview.filtered_count > max_agents:
                 state.entities_count = max_agents
             else:
@@ -1562,6 +1565,7 @@ def start_simulation():
         max_rounds = data.get('max_rounds')  # Optional: max rounds
         enable_graph_memory_update = data.get('enable_graph_memory_update', False)  # Optional: enable graph memory update
         force = data.get('force', False)  # Optional: force restart
+        super_speed_req = data.get('super_speed')
         if not isinstance(enable_graph_memory_update, bool):
             return jsonify({
                 "success": False,
@@ -1756,6 +1760,11 @@ def start_simulation():
                     graph_id,
                 )
 
+            # Detect super_speed from request or state
+            is_super_speed = bool(super_speed_req) if super_speed_req is not None else getattr(state, 'super_speed', False)
+            if is_super_speed and (max_rounds is None or max_rounds > 3):
+                max_rounds = 3
+
             # Start simulation while holding graph_guard until updater
             # claim and process resources finish.
             run_state = SimulationRunner.start_simulation(
@@ -1763,7 +1772,8 @@ def start_simulation():
                 platform=platform,
                 max_rounds=max_rounds,
                 enable_graph_memory_update=enable_graph_memory_update,
-                graph_id=graph_id
+                graph_id=graph_id,
+                super_speed=is_super_speed
             )
         
         response_data = run_state.to_dict()

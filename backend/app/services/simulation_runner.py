@@ -384,7 +384,8 @@ class SimulationRunner:
         platform: str = "parallel",  # twitter / reddit / parallel
         max_rounds: int = None,  # Maximum simulation rounds (optional, caps duration)
         enable_graph_memory_update: bool = False,  # Whether to update activities to Zep graph
-        graph_id: str = None  # Zep graph ID (required when graph update enabled)
+        graph_id: str = None,  # Zep graph ID (required when graph update enabled)
+        super_speed: bool = False
     ) -> SimulationRunState:
         """
         Start simulation
@@ -533,6 +534,10 @@ class SimulationRunner:
             # If max_rounds specified, append to command line args
             if max_rounds is not None and max_rounds > 0:
                 cmd.extend(["--max-rounds", str(max_rounds)])
+            
+            # If super speed mode, pass flags to skip command waiting and accelerate loops
+            if super_speed:
+                cmd.extend(["--no-wait", "--super-speed"])
             
             # Create main log file to prevent process blocking from pipe buffer overflow
             main_log_path = os.path.join(sim_dir, "simulation.log")
@@ -696,7 +701,7 @@ class SimulationRunner:
 
                 # Update status
                 cls._save_run_state(state)
-                time.sleep(2)
+                time.sleep(0.5 if getattr(state, "total_rounds", 40) <= 3 else 2)
             
             # Read logs one last time after process terminates
             if os.path.exists(twitter_actions_log):

@@ -322,8 +322,10 @@ def generate_ontology():
             }), 400
         
         # Create project
+        super_speed_form = request.form.get('super_speed', 'false').lower() in ('true', '1')
         project = ProjectManager.create_project(name=project_name)
         project.simulation_requirement = simulation_requirement
+        project.super_speed = super_speed_form
         logger.info(f"Created project: {project.project_id}")
         
         # Save files and extract text
@@ -707,11 +709,16 @@ def _build_graph_impl():
                     message=t('progress.textChunking'),
                     progress=5
                 )
-                chunks = TextProcessor.split_text(
-                    text, 
-                    chunk_size=chunk_size, 
-                    overlap=chunk_overlap
-                )
+                is_super_speed = bool(data.get('super_speed') or getattr(project, 'super_speed', False))
+                if is_super_speed:
+                    # In super speed mode, condense into a single high-priority seed chunk for instant ingestion
+                    chunks = [text[:3000]] if len(text) > 3000 else [text]
+                else:
+                    chunks = TextProcessor.split_text(
+                        text, 
+                        chunk_size=chunk_size, 
+                        overlap=chunk_overlap
+                    )
                 builder.validate_batch_chunks(chunks, batch_size=350)
                 total_chunks = len(chunks)
                 

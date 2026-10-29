@@ -389,7 +389,7 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import {
   startSimulation,
@@ -411,6 +411,10 @@ const props = defineProps({
     type: Number,
     default: 30 // Default 30 minutes per round
   },
+  isSuperSpeed: {
+    type: Boolean,
+    default: false
+  },
   projectData: Object,
   graphData: Object,
   systemLogs: Array
@@ -419,6 +423,11 @@ const props = defineProps({
 const emit = defineEmits(['go-back', 'next-step', 'add-log', 'update-status'])
 
 const router = useRouter()
+const route = useRoute()
+
+const isSuperSpeedMode = computed(() => {
+  return props.isSuperSpeed || route.query.superSpeed === 'true' || sessionStorage.getItem('lokantra_super_speed') === 'true'
+})
 
 // State
 const isGeneratingReport = ref(false)
@@ -512,15 +521,21 @@ const doStartSimulation = async () => {
       simulation_id: props.simulationId,
       platform: 'parallel',
       force: true,  // Force restart
-      enable_graph_memory_update: true  // Enable dynamic graph update
+      enable_graph_memory_update: !isSuperSpeedMode.value,  // Disable heavy cloud graph update during super speed
+      super_speed: isSuperSpeedMode.value
     }
     
-    if (props.maxRounds) {
+    if (isSuperSpeedMode.value) {
+      params.max_rounds = props.maxRounds || 3
+      addLog('[SUPER SPEED] Dual-platform simulation configured for 3 rapid rounds')
+    } else if (props.maxRounds) {
       params.max_rounds = props.maxRounds
       addLog(t('log.setMaxRounds', { rounds: props.maxRounds }))
     }
     
-    addLog(t('log.graphMemoryUpdateEnabled'))
+    if (!isSuperSpeedMode.value) {
+      addLog(t('log.graphMemoryUpdateEnabled'))
+    }
     
     const res = await startSimulation(params)
     
@@ -776,7 +791,8 @@ const handleNextStep = async () => {
   try {
     const res = await generateReport({
       simulation_id: props.simulationId,
-      force_regenerate: true
+      force_regenerate: true,
+      super_speed: isSuperSpeedMode.value
     })
     
     if (res.success && res.data) {
@@ -788,7 +804,11 @@ const handleNextStep = async () => {
       addLog(t('log.reportGenTaskStarted', { reportId }))
       
       // Navigate to report page
-      router.push({ name: 'Report', params: { reportId } })
+      router.push({
+        name: 'Report',
+        params: { reportId },
+        query: isSuperSpeedMode.value ? { superSpeed: 'true' } : {}
+      })
     } else {
       addLog(t('log.reportGenFailed', { error: res.error || t('common.unknownError') }))
       isGeneratingReport.value = false

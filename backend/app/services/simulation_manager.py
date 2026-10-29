@@ -74,6 +74,9 @@ class SimulationState:
     created_at: str = field(default_factory=lambda: datetime.now().isoformat())
     updated_at: str = field(default_factory=lambda: datetime.now().isoformat())
     
+    # Speed mode
+    super_speed: bool = False
+    
     # Error info
     error: Optional[str] = None
     
@@ -97,6 +100,7 @@ class SimulationState:
             "reddit_status": self.reddit_status,
             "created_at": self.created_at,
             "updated_at": self.updated_at,
+            "super_speed": self.super_speed,
             "error": self.error,
         }
     
@@ -121,6 +125,7 @@ class SimulationState:
             "entity_types": self.entity_types,
             "profiles_generated": self.profiles_generated,
             "config_generated": self.config_generated,
+            "super_speed": self.super_speed,
             "error": self.error,
         }
 
@@ -199,6 +204,7 @@ class SimulationManager:
             reddit_status=data.get("reddit_status", "not_started"),
             created_at=data.get("created_at", datetime.now().isoformat()),
             updated_at=data.get("updated_at", datetime.now().isoformat()),
+            super_speed=data.get("super_speed", False),
             error=data.get("error"),
         )
         
@@ -211,6 +217,7 @@ class SimulationManager:
         graph_id: str,
         enable_twitter: bool = True,
         enable_reddit: bool = True,
+        super_speed: bool = False,
     ) -> SimulationState:
         """
         Create new simulation
@@ -234,6 +241,7 @@ class SimulationManager:
             enable_twitter=enable_twitter,
             enable_reddit=enable_reddit,
             status=SimulationStatus.CREATED,
+            super_speed=super_speed,
         )
         
         self._save_simulation_state(state)
@@ -343,6 +351,7 @@ class SimulationManager:
         
         try:
             state.status = SimulationStatus.PREPARING
+            state.super_speed = super_speed
             state.error = None
             state.profiles_generated = False
             state.config_generated = False
@@ -433,7 +442,8 @@ class SimulationManager:
                 graph_id=state.graph_id,  # Pass graph_id for Zep search
                 parallel_count=parallel_profile_count,  # Concurrent generation count
                 realtime_output_path=realtime_output_path,  # Real-time save path
-                output_platform=realtime_platform  # Output format
+                output_platform=realtime_platform,  # Output format
+                super_speed=super_speed
             )
             
             state.profiles_count = len(profiles)

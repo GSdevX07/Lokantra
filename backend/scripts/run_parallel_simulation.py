@@ -1062,7 +1062,7 @@ def get_active_agents_for_round(
     
     # Calculate target count, ensuring at least 1 agent if agents exist
     raw_target = random.uniform(base_min, base_max) * multiplier
-    target_count = max(1, int(round(raw_target))) if agent_configs else 0
+    target_count = max(2, int(round(raw_target))) if agent_configs else 0
     
     candidates = []
     for cfg in agent_configs:
@@ -1591,6 +1591,12 @@ async def main():
         default=False,
         help='Close environment immediately after simulation completes, do not enter command waiting mode'
     )
+    parser.add_argument(
+        '--super-speed',
+        action='store_true',
+        default=False,
+        help='Run simulation in super speed mode (tight 3 rounds, no wait)'
+    )
     
     args = parser.parse_args()
     
@@ -1604,7 +1610,12 @@ async def main():
     
     config = load_config(args.config)
     simulation_dir = os.path.dirname(args.config) or "."
-    wait_for_commands = not args.no_wait
+    if args.super_speed:
+        wait_for_commands = False
+        if not args.max_rounds:
+            args.max_rounds = 3
+    else:
+        wait_for_commands = not args.no_wait
     
     # Initialize log config (disable OASIS logs, clean up old files)
     init_logging_for_simulation(simulation_dir)

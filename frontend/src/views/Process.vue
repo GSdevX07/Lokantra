@@ -588,6 +588,9 @@ const handleNewProject = async () => {
       formDataObj.append('files', file)
     })
     formDataObj.append('simulation_requirement', pending.simulationRequirement)
+    if (pending.superSpeed) {
+      formDataObj.append('super_speed', 'true')
+    }
     
     // Call ontology generation API
     const response = await generateOntology(formDataObj)
@@ -604,10 +607,12 @@ const handleNewProject = async () => {
       currentProjectId.value = response.data.project_id
       projectData.value = response.data
       
+      const isSuperSpeed = pending.superSpeed || sessionStorage.getItem('lokantra_super_speed') === 'true'
       // Update URL (without refreshing page)
       router.replace({
         name: 'Process',
-        params: { projectId: response.data.project_id }
+        params: { projectId: response.data.project_id },
+        query: isSuperSpeed ? { superSpeed: 'true' } : {}
       })
       
       ontologyProgress.value = null
@@ -690,7 +695,11 @@ const startBuildGraph = async () => {
       message: 'Starting graph construction...'
     }
     
-    const response = await buildGraph({ project_id: currentProjectId.value })
+    const isSuperSpeed = sessionStorage.getItem('lokantra_super_speed') === 'true' || route.query.superSpeed === 'true'
+    const response = await buildGraph({
+      project_id: currentProjectId.value,
+      super_speed: isSuperSpeed
+    })
     
     if (response.success) {
       if (response.data.reused && response.data.graph_id) {

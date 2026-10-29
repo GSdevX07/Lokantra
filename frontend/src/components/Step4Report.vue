@@ -502,13 +502,14 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onUnmounted, nextTick, h, reactive } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import FloatingTerminal from './FloatingTerminal.vue'
 import { getAgentLog, getConsoleLog } from '../api/report'
 import { downloadPredictionReportPdf } from '../utils/downloadPdf'
 
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 
 const props = defineProps({
@@ -542,7 +543,12 @@ const handleDownloadPdf = async () => {
 // Navigation
 const goToInteraction = () => {
   if (props.reportId) {
-    router.push({ name: 'Interaction', params: { reportId: props.reportId } })
+    const isSuperSpeed = route.query.superSpeed === 'true' || sessionStorage.getItem('lokantra_super_speed') === 'true'
+    router.push({
+      name: 'Interaction',
+      params: { reportId: props.reportId },
+      query: isSuperSpeed ? { superSpeed: 'true' } : {}
+    })
   }
 }
 

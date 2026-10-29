@@ -187,15 +187,16 @@ const handleNextStep = (params = {}) => {
     addLog(t('log.useAutoRounds'))
   }
   
-  // Build route params
+  const isSuperSpeed = route.query.superSpeed === 'true' || sessionStorage.getItem('lokantra_super_speed') === 'true' || !!params.superSpeed
+
+  // Build route params preserving superSpeed
   const routeParams = {
     name: 'SimulationRun',
-    params: { simulationId: currentSimulationId.value }
-  }
-  
-  // Pass customized rounds via query params if present
-  if (params.maxRounds) {
-    routeParams.query = { maxRounds: params.maxRounds }
+    params: { simulationId: currentSimulationId.value },
+    query: {
+      ...(params.maxRounds ? { maxRounds: params.maxRounds } : {}),
+      ...(isSuperSpeed ? { superSpeed: 'true' } : {})
+    }
   }
   
   // Navigate to Step 3 page

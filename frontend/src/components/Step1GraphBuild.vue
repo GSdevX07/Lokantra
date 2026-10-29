@@ -365,13 +365,14 @@
 
 <script setup>
 import { computed, ref, watch, nextTick } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { createSimulation } from '../api/simulation'
 import { saveLocalSimulation } from '../services/localSimulationHistory'
 import FloatingTerminal from './FloatingTerminal.vue'
 
 const router = useRouter()
+const route = useRoute()
 const { t } = useI18n()
 
 const props = defineProps({
@@ -399,11 +400,13 @@ const handleEnterEnvSetup = async () => {
   creatingSimulation.value = true
   
   try {
+    const isSuperSpeed = route.query.superSpeed === 'true' || sessionStorage.getItem('lokantra_super_speed') === 'true'
     const res = await createSimulation({
       project_id: props.projectData.project_id,
       graph_id: props.projectData.graph_id,
       enable_twitter: true,
-      enable_reddit: true
+      enable_reddit: true,
+      super_speed: isSuperSpeed
     })
     
     if (res.success && res.data?.simulation_id) {
@@ -416,7 +419,6 @@ const handleEnterEnvSetup = async () => {
         status: 'created'
       })
       // Navigate to simulation page
-      const isSuperSpeed = sessionStorage.getItem('lokantra_super_speed') === 'true'
       router.push({
         name: 'Simulation',
         params: { simulationId: res.data.simulation_id },

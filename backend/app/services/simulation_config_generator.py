@@ -302,16 +302,16 @@ class SimulationConfigGenerator:
             time_config = TimeSimulationConfig(
                 total_simulation_hours=3,
                 minutes_per_round=60,
-                agents_per_hour_min=2,
-                agents_per_hour_max=min(5, max(3, num_entities // 3)),
-                peak_hours=[1, 2],
+                agents_per_hour_min=3,
+                agents_per_hour_max=min(6, max(4, num_entities // 2)),
+                peak_hours=[0, 1, 2],
                 off_peak_hours=[],
-                off_peak_activity_multiplier=0.8,
+                off_peak_activity_multiplier=1.0,
                 morning_hours=[],
                 morning_activity_multiplier=1.0,
                 work_hours=[0, 1, 2],
                 work_activity_multiplier=1.0,
-                peak_activity_multiplier=1.2,
+                peak_activity_multiplier=1.5,
             )
             reasoning_parts.append(f"{t('progress.timeConfigLabel')}: Super Speed 3-round timeline")
         else:
@@ -341,7 +341,8 @@ class SimulationConfigGenerator:
                 context=context,
                 entities=batch_entities,
                 start_idx=start_idx,
-                simulation_requirement=simulation_requirement
+                simulation_requirement=simulation_requirement,
+                super_speed=super_speed
             )
             all_agent_configs.extend(batch_configs)
         
@@ -862,7 +863,8 @@ Return JSON format (no markdown):
         context: str,
         entities: List[EntityNode],
         start_idx: int,
-        simulation_requirement: str
+        simulation_requirement: str,
+        super_speed: bool = False
     ) -> List[AgentActivityConfig]:
         """Batch generate Agent configurations"""
         
@@ -932,17 +934,29 @@ Return JSON format (no markdown):
             if not cfg:
                 cfg = self._generate_agent_config_by_rule(entity)
             
+            # In super speed mode, ensure high activity and that active_hours covers all 3 rounds [0, 1, 2]
+            if super_speed:
+                hours = list(range(24))
+                act_level = max(0.8, float(cfg.get("activity_level", 0.85)))
+                resp_min = 1
+                resp_max = 5
+            else:
+                hours = self._normalize_hours_list(cfg.get("active_hours", list(range(9, 23))))
+                act_level = cfg.get("activity_level", 0.5)
+                resp_min = cfg.get("response_delay_min", 5)
+                resp_max = cfg.get("response_delay_max", 60)
+
             config = AgentActivityConfig(
                 agent_id=agent_id,
                 entity_uuid=entity.uuid,
                 entity_name=entity.name,
                 entity_type=entity.get_entity_type() or "Unknown",
-                activity_level=cfg.get("activity_level", 0.5),
-                posts_per_hour=cfg.get("posts_per_hour", 0.5),
-                comments_per_hour=cfg.get("comments_per_hour", 1.0),
-                active_hours=self._normalize_hours_list(cfg.get("active_hours", list(range(9, 23)))),
-                response_delay_min=cfg.get("response_delay_min", 5),
-                response_delay_max=cfg.get("response_delay_max", 60),
+                activity_level=act_level,
+                posts_per_hour=cfg.get("posts_per_hour", 1.0 if super_speed else 0.5),
+                comments_per_hour=cfg.get("comments_per_hour", 2.0 if super_speed else 1.0),
+                active_hours=hours,
+                response_delay_min=resp_min,
+                response_delay_max=resp_max,
                 sentiment_bias=cfg.get("sentiment_bias", 0.0),
                 stance=cfg.get("stance", "neutral"),
                 influence_weight=cfg.get("influence_weight", 1.0)

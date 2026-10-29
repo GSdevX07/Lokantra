@@ -892,6 +892,129 @@ Important:
         """Set graph ID for Zep search"""
         self.graph_id = graph_id
     
+    def _generate_profiles_fast_batched(
+        self,
+        entities: List[EntityNode],
+        progress_callback: Optional[callable] = None,
+        realtime_output_path: Optional[str] = None,
+        output_platform: str = "reddit"
+    ) -> List[OasisAgentProfile]:
+        """Fast batched generation of personas for Super Speed mode."""
+        total = len(entities)
+        profiles = []
+        entity_payload = []
+        for idx, e in enumerate(entities):
+            etype = e.get_entity_type() or "Stakeholder"
+            summary = (e.summary or "").strip()
+            if len(summary) > 150:
+                summary = summary[:150] + "..."
+            entity_payload.append({
+                "id": idx,
+                "name": e.name,
+                "type": etype,
+                "summary": summary
+            })
+
+        system_prompt = (
+            "You are an expert social media agent profiler for digital swarm simulations. "
+            "Output pure JSON only."
+        )
+        prompt = f"""Generate vibrant social media personas for these {len(entities)} entities:
+```json
+{json.dumps(entity_payload, ensure_ascii=False, indent=2)}
+```
+
+Return a JSON object with key "profiles" containing an array of {len(entities)} objects:
+{{
+  "profiles": [
+    {{
+      "id": 0,
+      "name": "<name>",
+      "user_name": "<valid lowercase username without spaces>",
+      "bio": "<one-sentence bio>",
+      "persona": "<2-sentence personality, perspective, and social media posting tone>",
+      "profession": "<profession>",
+      "mbti": "<one of INTJ, ENTJ, INTP, ENTP, INFJ, ENFJ, INFP, ENFP, ISTJ, ESTJ, ISFJ, ESFJ, ISTP, ESTP, ISFP, ESFP>",
+      "gender": "<male/female/neutral>",
+      "age": 28,
+      "interested_topics": ["topic1", "topic2"]
+    }}
+  ]
+}}
+"""
+        llm_profiles_by_id = {}
+        try:
+            response = create_chat_completion(
+                self.client,
+                model=self.model_name,
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format={"type": "json_object"},
+                temperature=0.7
+            )
+            content = extract_chat_completion_text(response)
+            parsed = json.loads(content)
+            items = parsed.get("profiles", parsed.get("agents", []))
+            for item in items:
+                if isinstance(item, dict) and "id" in item:
+                    llm_profiles_by_id[int(item["id"])] = item
+        except Exception as e:
+            logger.warning(f"Super Speed batched persona generation fallback triggered: {e}")
+
+        for idx, entity in enumerate(entities):
+            etype = entity.get_entity_type() or "Stakeholder"
+            data = llm_profiles_by_id.get(idx)
+            if not data:
+                data = self._generate_profile_rule_based(
+                    entity_name=entity.name,
+                    entity_type=etype,
+                    entity_summary=entity.summary,
+                    entity_attributes=entity.attributes or {}
+                )
+            
+            uname = data.get("user_name") or self._generate_username(entity.name)
+            uname = re.sub(r'[^a-zA-Z0-9_]', '', uname.replace(' ', '_')).lower() or f"agent_{idx}"
+
+            p = OasisAgentProfile(
+                user_id=idx,
+                user_name=uname,
+                name=data.get("name") or entity.name,
+                bio=data.get("bio") or f"{etype}: {entity.name}",
+                persona=data.get("persona") or (entity.summary or f"{entity.name} is an active participant in community discussions."),
+                gender=data.get("gender") or "neutral",
+                age=int(data.get("age", 30)),
+                mbti=data.get("mbti") or "INTJ",
+                country=data.get("country") or "Global",
+                profession=data.get("profession") or etype,
+                interested_topics=data.get("interested_topics") or ["Discussion", "Public Opinion"],
+                source_entity_uuid=entity.uuid,
+                source_entity_type=etype
+            )
+            profiles.append(p)
+            if progress_callback:
+                progress_callback(idx + 1, total, f"{p.name} ({etype})")
+
+        if realtime_output_path:
+            try:
+                if output_platform == "reddit":
+                    pdata = [p.to_reddit_format() for p in profiles]
+                    with open(realtime_output_path, 'w', encoding='utf-8') as f:
+                        json.dump(pdata, f, ensure_ascii=False, indent=2)
+                else:
+                    import csv
+                    pdata = [p.to_twitter_format() for p in profiles]
+                    if pdata:
+                        with open(realtime_output_path, 'w', encoding='utf-8', newline='') as f:
+                            writer = csv.DictWriter(f, fieldnames=list(pdata[0].keys()))
+                            writer.writeheader()
+                            writer.writerows(pdata)
+            except Exception as e:
+                logger.warning(f"Failed to save super speed profiles: {e}")
+
+        return profiles
+
     def generate_profiles_from_entities(
         self,
         entities: List[EntityNode],
@@ -900,8 +1023,17 @@ Important:
         graph_id: Optional[str] = None,
         parallel_count: int = 5,
         realtime_output_path: Optional[str] = None,
-        output_platform: str = "reddit"
+        output_platform: str = "reddit",
+        super_speed: bool = False
     ) -> List[OasisAgentProfile]:
+        """Batch generate Agent Profiles from entities."""
+        if super_speed:
+            return self._generate_profiles_fast_batched(
+                entities=entities,
+                progress_callback=progress_callback,
+                realtime_output_path=realtime_output_path,
+                output_platform=output_platform
+            )
         """
         Batch generate Agent Profiles from entities (supports parallel generation)
         
