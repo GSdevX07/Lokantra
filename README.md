@@ -29,7 +29,7 @@ pinned: false
 
 ## ⚡ Overview
 
-**LOKĀNTRA** is a next-generation AI prediction engine powered by multi-agent technology. By extracting seed information from the real world (such as breaking news, policy drafts, or financial signals), it automatically constructs a high-fidelity parallel digital world. Within this space, thousands of intelligent agents with independent personalities, long-term memory, and behavioral logic freely interact and undergo social evolution. You can inject variables dynamically from a "God's-eye view" to precisely deduce future trajectories — **rehearse the future in a digital sandbox, and win decisions after countless simulations**.
+**LOKĀNTRA** is a next-generation AI prediction engine powered by multi-agent technology. By extracting seed information from the real world (such as breaking news, policy drafts, or financial signals), it automatically constructs a high-fidelity parallel digital world. Within this space, thousands of intelligent agents with independent personalities, long-term memory, and behavioral logic freely interact and undergo social evolution. You can inject variables dynamically from a "God's-eye view" to precisely deduce future trajectories  **rehearse the future in a digital sandbox, and win decisions after countless simulations**.
 
 > You only need to: Upload seed materials (data analysis reports or interesting stories) and describe your prediction requirements in natural language</br>
 > LOKĀNTRA will return: A detailed prediction report and a deeply interactive high-fidelity digital world
@@ -39,7 +39,7 @@ pinned: false
 LOKĀNTRA is dedicated to creating a swarm intelligence mirror that maps reality. By capturing the collective emergence triggered by individual interactions, we break through the limitations of traditional prediction:
 
 - **At the Macro Level**: A rehearsal laboratory for decision-makers, allowing policies and public relations to be tested at zero risk
-- **At the Micro Level**: A creative sandbox for individual users — whether deducing narrative endings or exploring imaginative scenarios, everything can be fun, playful, and accessible
+- **At the Micro Level**: A creative sandbox for individual users  whether deducing narrative endings or exploring imaginative scenarios, everything can be fun, playful, and accessible
 
 From serious predictions to playful simulations, we let every "what if" see its outcome, making it possible to predict anything.
 

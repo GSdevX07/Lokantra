@@ -551,7 +551,7 @@ Process:
 # ── Outline Planning Prompt ──
 
 PLAN_SYSTEM_PROMPT = """\
-You are an expert author of Future Forecast Reports, possessing an omniscient perspective over the simulated world—observing the behaviors, statements, and interactions of every agent.
+You are an expert author of Future Forecast Reports, possessing an omniscient perspective over the simulated worldobserving the behaviors, statements, and interactions of every agent.
 
 [Core Concept]
 We built a simulated world and injected specific simulation requirements as variables. The evolutionary outcome of the simulated world represents a forecast of possible future realities. You are observing a preview of the future.
@@ -634,7 +634,7 @@ Your objectives:
 - Identify emerging trends, latent risks, and strategic opportunities
 
 - Do NOT write a retrospective analysis of the present status
-- Focus exclusively on "what the future will hold"—the simulation results are the predicted future
+- Focus exclusively on "what the future will hold"the simulation results are the predicted future
 
 [Crucial Rules - Mandatory]
 
@@ -662,7 +662,7 @@ Your objectives:
 
 5. [Zero Fabrication]
 - Do NOT fabricate usernames, citations, statistics, or interactions
-- Do NOT output <tool_result> blocks—tool results are provided strictly by the environment
+- Do NOT output <tool_result> blockstool results are provided strictly by the environment
 - Cite only entities, quotes, and metrics returned by tool observations
 
 [Formatting Guidelines - Crucial]
