@@ -62,11 +62,12 @@ def create_app(config_class=Config):
         return response
     
     # Register blueprints
-    from .api import graph_bp, simulation_bp, report_bp, voice_bp
+    from .api import graph_bp, simulation_bp, report_bp, voice_bp, viasocket_bp
     app.register_blueprint(graph_bp, url_prefix='/api/graph')
     app.register_blueprint(simulation_bp, url_prefix='/api/simulation')
     app.register_blueprint(report_bp, url_prefix='/api/report')
     app.register_blueprint(voice_bp, url_prefix='/api/voice')
+    app.register_blueprint(viasocket_bp, url_prefix='/api/viasocket')
     
     # Health check
     @app.route('/health')

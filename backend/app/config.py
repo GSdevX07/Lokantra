@@ -102,6 +102,20 @@ class Config:
     LAYA_MODEL = os.environ.get('LAYA_MODEL', 'convaiinnovations/laya')
     LAYA_DEVICE = os.environ.get('LAYA_DEVICE', 'cpu')
     
+    # viaSocket MCP & Action Execution Governance Configuration
+    VIASOCKET_MCP_ENDPOINT = os.environ.get('VIASOCKET_MCP_ENDPOINT', 'https://mcp.docstar.io/connector/viasocket_api')
+    VIASOCKET_API_KEY = os.environ.get('VIASOCKET_API_KEY', '')
+    VIASOCKET_MODE = os.environ.get('VIASOCKET_MODE', 'auto').lower()  # 'live', 'demo', 'auto'
+    VIASOCKET_TIMEOUT = float(os.environ.get('VIASOCKET_TIMEOUT', '5.0'))
+    VIASOCKET_CACHE_TTL = int(os.environ.get('VIASOCKET_CACHE_TTL', '300'))
+    VIASOCKET_HITL_AUTO_APPROVE_READ = os.environ.get('VIASOCKET_HITL_AUTO_APPROVE_READ', 'true').lower() == 'true'
+    VIASOCKET_MAX_CALLS_PER_ROUND = int(os.environ.get('VIASOCKET_MAX_CALLS_PER_ROUND', '3'))
+    
+    # viaSocket Embed Credentials
+    VIASOCKET_ORG_ID = os.environ.get('VIASOCKET_ORG_ID', '')
+    VIASOCKET_PROJECT_ID = os.environ.get('VIASOCKET_PROJECT_ID', '')
+    VIASOCKET_EMBED_SECRET = os.environ.get('VIASOCKET_EMBED_SECRET', '')
+    
     @classmethod
     def validate(cls) -> list[str]:
         """Validate required configuration"""

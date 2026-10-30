@@ -1,0 +1,27 @@
+# viaSocket API
+
+## Modules
+
+- [Auth Data](https://techdoc.viasocket.com/auth-token/llms.txt) — Endpoints: oauth2 Create Data entry in DB, doubt(oauth2 data update in DB), GetScriptInfoForAuth
+- [Authorization ](https://techdoc.viasocket.com/untitled-1/llms.txt) — Endpoints: Get Client
+- [Organization](https://techdoc.viasocket.com/organization/llms.txt) — Endpoints: Create New Organization, Get all Organizations, Get Users of an Organization, Update an organization, Get Org Token, global Search On Org, Switch org, Add user to org , leave org , RemoveUser, Generate ApiKey, get user and user org details
+- [Users](https://techdoc.viasocket.com/users/llms.txt) — Endpoints: Create User, Get User Profile, SSO Register, Embed Login, Register, SSO Login
+- [Projects](https://techdoc.viasocket.com/projects/llms.txt) — Endpoints: Create Project, Get all projects, Update Project, Change project status
+- [Scripts](https://techdoc.viasocket.com/scripts/llms.txt) — Endpoints: Create Script, Get All Script, Update Script, Get One Script, Change Script Status, Duplicate Script, Delete Script, Publish Script, Revert Script, Instantiate flow from template, (hold)Update execution script time, Move script to another project, ...
+- [Functions](https://techdoc.viasocket.com/functions/llms.txt) — Endpoints: Get All Functions, Get One Function/Api Details
+- [Run Script](https://techdoc.viasocket.com/run-script/llms.txt) — Endpoints: Run script endpoint url, Run script endpoint url, Dry Run script
+- [User Organization mapping](https://techdoc.viasocket.com/user-organization-mapping/llms.txt) — Endpoints: add user to organization, remove user from Org
+- [openAI](https://techdoc.viasocket.com/openai/llms.txt) — Endpoints: Get Brand Details, Optimize Code DH
+- [Auth token/Miscellaneous](https://techdoc.viasocket.com/auth-token-miscellaneous/llms.txt) — Endpoints: get script flow json, serverhealth, health check
+- [Logs](https://techdoc.viasocket.com/logs/llms.txt) — Endpoints: get All Logs By ScpritId
+- [Plugin](https://techdoc.viasocket.com/plugin/llms.txt) — Endpoints: Verify basic auth
+- [DbDash](https://techdoc.viasocket.com/dbdash/llms.txt) — Endpoints: get plug data, get plugins With Events, get plug by plugin id, get Plugin By Query, get Action By Query, getRecommendationsForNextAction, getRecommendationsForMultiplePlugins
+- [flow](https://techdoc.viasocket.com/flow/llms.txt) — Endpoints: delete step, create step, update Step, reorder, Update Status, (Hold)Get Filtered Data
+- [Viasocket Auth](https://techdoc.viasocket.com/viasocket-auth/llms.txt) — Endpoints: Get All Auths, Validate Token, Get Org Name
+- [Rtlayer](https://techdoc.viasocket.com/rtlayer/llms.txt) — Endpoints: Get Token to connect RT Layer
+- [User](https://techdoc.viasocket.com/user/llms.txt) — Endpoints: Get user profile
+
+## Pages
+
+- [Overview](https://techdoc.viasocket.com/overview.md)
+- [Datagrid Hide footer if rows are less than 25](https://techdoc.viasocket.com/datagrid-hide-footer-if-rows-are-less-than-25.md)

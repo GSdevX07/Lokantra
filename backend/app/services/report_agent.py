@@ -527,6 +527,19 @@ Lightweight, fast retrieval tool for direct queries.
 [Returns]
 - List of most relevant facts matching query"""
 
+TOOL_DESC_VIASOCKET_GROUND_TRUTH = """\
+[viaSocket Live Ground-Truth Ingestion]
+Connects to viaSocket 2,300+ integrations through the Lokantra Governance Layer:
+1. Queries live web pages, Google SERP headlines, or enterprise databases
+2. Automatically subject to Scoping Registry and least-privilege role boundaries
+3. Results update local knowledge graph context in real-time."""
+
+TOOL_DESC_VIASOCKET_PROPOSE_ACTUATION = """\
+[viaSocket Human-in-the-Loop Actuation Proposal]
+Proposes a real-world downstream action (e.g. sending a Slack alert, dispatching an email, publishing an announcement):
+1. Action is safely staged in the Lokantra HITL Execution Queue
+2. Destructive actions require explicit human operator approval before execution via viaSocket."""
+
 TOOL_DESC_INTERVIEW_AGENTS = """\
 [In-Depth Interview - Live Agent Interview (Dual Platform)]
 Calls OASIS interview APIs to interview live running simulated agents!
@@ -911,6 +924,23 @@ class ReportAgent:
                     "limit": "Number of results to return (optional, default 10)"
                 }
             },
+            "viasocket_ground_truth": {
+                "name": "viasocket_ground_truth",
+                "description": TOOL_DESC_VIASOCKET_GROUND_TRUTH,
+                "parameters": {
+                    "tool_name": "viaSocket tool ('scrape_webpage', 'search_serp_google', 'query_postgres', 'read_google_sheets')",
+                    "arguments": "Dictionary of arguments for the tool (e.g. {'query': '...'} or {'url': '...'})"
+                }
+            },
+            "viasocket_propose_actuation": {
+                "name": "viasocket_propose_actuation",
+                "description": TOOL_DESC_VIASOCKET_PROPOSE_ACTUATION,
+                "parameters": {
+                    "tool_name": "viaSocket write tool ('send_slack_message', 'send_email', 'post_twitter_tweet')",
+                    "arguments": "Dictionary of arguments (e.g. {'channel': '#general', 'message': '...'})",
+                    "predicted_outcome": "Strategic justification and predicted impact"
+                }
+            },
             "interview_agents": {
                 "name": "interview_agents",
                 "description": TOOL_DESC_INTERVIEW_AGENTS,
@@ -973,6 +1003,57 @@ class ReportAgent:
                 )
                 return result.to_text()
             
+            elif tool_name == "viasocket_ground_truth":
+                vs_tool = parameters.get("tool_name", "search_serp_google")
+                vs_args = parameters.get("arguments", {})
+                if isinstance(vs_args, str):
+                    try:
+                        vs_args = json.loads(vs_args)
+                    except Exception:
+                        vs_args = {"query": vs_args}
+                from .viasocket import get_viasocket_governance, get_viasocket_graph_bridge
+                gov = get_viasocket_governance()
+                bridge = get_viasocket_graph_bridge()
+                dec, res, reason, lat = gov.evaluate_and_route(
+                    agent_id="report_agent",
+                    agent_role="report_agent",
+                    tool_name=vs_tool,
+                    arguments=vs_args,
+                    phase="post_simulation",
+                    simulation_id=self.simulation_id
+                )
+                if res:
+                    bridge.ingest_ground_truth(vs_tool, vs_args, res, simulation_id=self.simulation_id)
+                    return f"[viaSocket Ground-Truth Result ({lat}ms)]: {json.dumps(res, ensure_ascii=False)}"
+                return f"[viaSocket Governance Decision]: {reason}"
+
+            elif tool_name == "viasocket_propose_actuation":
+                vs_tool = parameters.get("tool_name", "send_slack_message")
+                vs_args = parameters.get("arguments", {})
+                if isinstance(vs_args, str):
+                    try:
+                        vs_args = json.loads(vs_args)
+                    except Exception:
+                        vs_args = {"message": vs_args}
+                outcome = parameters.get("predicted_outcome", "Post-simulation recommended action")
+                from .viasocket import get_viasocket_hitl
+                hitl = get_viasocket_hitl()
+                staged = hitl.stage_action(
+                    agent_id="report_agent",
+                    agent_role="report_agent",
+                    tool_name=vs_tool,
+                    arguments=vs_args,
+                    predicted_outcome=outcome,
+                    simulation_id=self.simulation_id
+                )
+                return (
+                    f"[viaSocket Human-in-the-Loop Action Staged (Action ID: {staged['action_id']})]\n"
+                    f"Tool: {vs_tool}\n"
+                    f"Risk Level: {staged['risk_level']}\n"
+                    f"Status: PENDING_APPROVAL\n"
+                    f"Note: This destructive action has been safely queued for human operator review in the UI."
+                )
+
             elif tool_name == "interview_agents":
                 # In-depth interview - calls OASIS interview API for real agent responses (dual-platform)
                 interview_topic = parameters.get("interview_topic", parameters.get("query", ""))

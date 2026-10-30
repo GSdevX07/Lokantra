@@ -374,3 +374,32 @@ class CognitiveSwarmRouter:
         """Print and save telemetry report"""
         print("\n" + self.telemetry.generate_ascii_report())
         self.telemetry.save_telemetry()
+
+
+    def evaluate_viasocket_action(
+        self,
+        agent_id: str,
+        agent_role: str,
+        tool_name: str,
+        arguments: Dict[str, Any],
+        round_num: int = 1
+    ) -> Tuple[str, Optional[Dict[str, Any]], str, float]:
+        """
+        Evaluate and intercept an agent's viaSocket action request through the Scoping Registry.
+        Enforces Role-Based Access Control and in-simulation temporal boundaries.
+        """
+        from ..viasocket import get_viasocket_governance, get_viasocket_graph_bridge
+        gov = get_viasocket_governance()
+        bridge = get_viasocket_graph_bridge()
+        dec, res, reason, lat = gov.evaluate_and_route(
+            agent_id=str(agent_id),
+            agent_role=agent_role,
+            tool_name=tool_name,
+            arguments=arguments,
+            phase="simulation",
+            round_num=round_num,
+            simulation_id=self.simulation_dir
+        )
+        if res and dec in ("ALLOWED", "CACHED"):
+            bridge.ingest_ground_truth(tool_name, arguments, res, simulation_id=self.simulation_dir)
+        return dec, res, reason, lat
