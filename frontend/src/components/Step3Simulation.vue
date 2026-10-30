@@ -529,8 +529,11 @@ const doStartSimulation = async () => {
       params.max_rounds = props.maxRounds || 3
       addLog('[SUPER SPEED] Dual-platform simulation configured for 3 rapid rounds')
     } else if (props.maxRounds) {
-      params.max_rounds = props.maxRounds
-      addLog(t('log.setMaxRounds', { rounds: props.maxRounds }))
+      params.max_rounds = Math.min(props.maxRounds, 20)
+      addLog(t('log.setMaxRounds', { rounds: params.max_rounds }))
+    } else {
+      params.max_rounds = 10
+      addLog(t('log.setMaxRounds', { rounds: 10 }))
     }
     
     if (!isSuperSpeedMode.value) {
@@ -550,7 +553,7 @@ const doStartSimulation = async () => {
       runStatus.value = res.data
       updateLocalSimulation(props.simulationId, {
         status: 'running',
-        total_rounds: props.maxRounds || 0
+        total_rounds: props.maxRounds ? Math.min(props.maxRounds, 20) : 10
       })
       
       startStatusPolling()

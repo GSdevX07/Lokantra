@@ -11,11 +11,22 @@ jobs:
     name: Deploy to Azure Server
     runs-on: ubuntu-latest
     steps:
+      - name: Check Deployment Credentials
+        id: check_creds
+        run: |
+          if [ -z "${{ secrets.AZURE_VM_PASSWORD }}" ] && [ -z "${{ secrets.AZURE_SSH_KEY }}" ]; then
+            echo "has_creds=false" >> $GITHUB_OUTPUT
+            echo "::warning::AZURE_VM_PASSWORD or AZURE_SSH_KEY secret is not set in GitHub repository settings. Skipping auto-deploy."
+          else
+            echo "has_creds=true" >> $GITHUB_OUTPUT
+          fi
+
       - name: SSH and Deploy to Azure VM
+        if: steps.check_creds.outputs.has_creds == 'true'
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.AZURE_VM_HOST }}
-          username: ${{ secrets.AZURE_VM_USERNAME }}
+          host: ${{ secrets.AZURE_VM_HOST || '172.198.129.132' }}
+          username: ${{ secrets.AZURE_VM_USERNAME || 'Lokantra' }}
           key: ${{ secrets.AZURE_SSH_KEY }}
           password: ${{ secrets.AZURE_VM_PASSWORD }}
           port: 22

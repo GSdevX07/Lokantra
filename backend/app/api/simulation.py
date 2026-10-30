@@ -1764,6 +1764,8 @@ def start_simulation():
             is_super_speed = bool(super_speed_req) if super_speed_req is not None else getattr(state, 'super_speed', False)
             if is_super_speed and (max_rounds is None or max_rounds > 3):
                 max_rounds = 3
+            elif max_rounds is None or max_rounds > 20:
+                max_rounds = 10 if max_rounds is None else min(max_rounds, 20)
 
             # Start simulation while holding graph_guard until updater
             # claim and process resources finish.

@@ -137,7 +137,7 @@ const isSuperSpeed = computed(() => {
   return route.query.superSpeed === 'true' || sessionStorage.getItem('lokantra_super_speed') === 'true'
 })
 // Fetch maxRounds directly from query params during initialization to ensure child components have access immediately
-const maxRounds = ref(route.query.maxRounds ? parseInt(route.query.maxRounds) : (isSuperSpeed.value ? 3 : null))
+const maxRounds = ref(route.query.maxRounds ? Math.min(parseInt(route.query.maxRounds), 20) : (isSuperSpeed.value ? 3 : 10))
 const minutesPerRound = ref(30) // Default 30 minutes per round
 const projectData = ref(null)
 const graphData = ref(null)
