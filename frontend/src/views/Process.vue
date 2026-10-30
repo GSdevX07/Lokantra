@@ -320,7 +320,7 @@
               <div class="detail-section">
                 <div class="detail-label">API Description</div>
                 <div class="detail-content">
-                  Based on generated ontology, documents are chunked and Zep API is called to build knowledge graph, extracting entities and relations
+                  Based on generated ontology, documents are chunked and TigerGraph API is called to build knowledge graph, extracting entities and relations
                 </div>
               </div>
               

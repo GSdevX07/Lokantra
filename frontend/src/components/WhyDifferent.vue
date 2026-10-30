@@ -311,7 +311,7 @@ const pillars = [
     whatItIs: 'Graph-based knowledge representation combined with retrieval-augmented generation.',
     howLokantraUsesIt: 'Extracts entities, relationships, and domain-specific structures from uploaded documents to build a knowledge graph that provides context for simulations.',
     usageHeading: 'How LOKĀNTRA uses it',
-    technology: ['Ontology generation', 'TigerGraph', 'Zep Cloud'],
+    technology: ['Ontology generation', 'TigerGraph', 'TigerGraph Cloud'],
     capabilities: [
       'entity-relationship-extraction',
       'ontology-induction',
@@ -320,7 +320,7 @@ const pillars = [
     ],
     links: [
       { label: 'TigerGraph', url: 'https://www.tigergraph.com/', icon: 'external' },
-      { label: 'Zep Cloud', url: 'https://www.getzep.com/', icon: 'external' }
+      { label: 'TigerGraph Cloud', url: 'https://www.tigergraph.com/', icon: 'external' }
     ]
   },
   {
@@ -400,7 +400,7 @@ const pillars = [
     whatItIs: 'A memory architecture that represents information through connected entities and relationships, making relevant context retrievable.',
     howLokantraUsesIt: 'Connects agent activity and simulation context to graph services for memory updates, report investigation, and follow-up questions.',
     usageHeading: 'How LOKĀNTRA uses it',
-    technology: ['Zep Cloud', 'TigerGraph-backed services'],
+    technology: ['TigerGraph Cloud', 'TigerGraph-backed services'],
     capabilities: [
       'connected-entities',
       'temporal-memory-updates',
@@ -409,7 +409,7 @@ const pillars = [
     ],
     links: [
       { label: 'TigerGraph', url: 'https://www.tigergraph.com/', icon: 'external' },
-      { label: 'Zep Memory', url: 'https://www.getzep.com/', icon: 'external' }
+      { label: 'TigerGraph Memory', url: 'https://www.tigergraph.com/', icon: 'external' }
     ]
   },
   {

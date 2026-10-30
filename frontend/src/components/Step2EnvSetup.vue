@@ -1265,7 +1265,7 @@ const startPrepareSimulation = async () => {
       // Set expected total agents immediately (from prepare API return value)
       if (res.data.expected_entities_count) {
         expectedTotal.value = res.data.expected_entities_count
-        addLog(t('log.zepEntitiesFound', { count: res.data.expected_entities_count }))
+        addLog(t('log.tigergraphEntitiesFound', { count: res.data.expected_entities_count }))
         if (res.data.entity_types && res.data.entity_types.length > 0) {
           addLog(t('log.entityTypes', { types: res.data.entity_types.join(', ') }))
         }

@@ -275,7 +275,7 @@ const handleNewProject = async () => {
       addLog('Ontology generated successfully. Building knowledge mapping...')
 
       setTimeout(() => {
-        buildProgress.value = { progress: 78, message: 'Structuring knowledge graph topology in Zep memory...' }
+        buildProgress.value = { progress: 78, message: 'Structuring knowledge graph topology in TigerGraph memory...' }
         addLog('Synthesizing relation edges and entity vector space...')
       }, 2000)
 
