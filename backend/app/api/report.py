@@ -319,6 +319,11 @@ def generate_report():
                         )
                 except Exception as e:
                     logger.error(f"Report generation failed: {str(e)}")
+                    if hasattr(agent, "report_logger") and agent.report_logger:
+                        try:
+                            agent.report_logger.log_error(str(e), stage="generating")
+                        except Exception:
+                            pass
                     task_manager.fail_task(task_id, str(e))
                 finally:
                     unregister_graph_reader(graph_id, report_id)

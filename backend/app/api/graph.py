@@ -785,30 +785,124 @@ def _build_graph_impl():
                         project.zep_batch_operation_id = operation_id
                         ProjectManager.save_project(project)
 
-                    submission = builder.add_text_batches(
-                        graph_id,
-                        chunks,
-                        batch_size=350,
-                        progress_callback=add_progress_callback,
-                        batch_created_callback=remember_batch,
-                    )
-                
-                # Wait for Zep processing completion (query processed status per episode)
-                task_manager.update_task(
-                    task_id,
-                    message=t('progress.waitingZepProcess'),
-                    progress=55
-                )
-                
-                def wait_progress_callback(msg, progress_ratio):
-                    progress = 55 + int(progress_ratio * 35)  # 55% - 90%
-                    task_manager.update_task(
-                        task_id,
-                        message=msg,
-                        progress=progress
-                    )
-                
-                builder._wait_for_batch(submission, wait_progress_callback)
+                    super_speed_ingested = False
+                    submission = None
+
+                    if is_super_speed and not Config.is_tigergraph():
+                        try:
+                            task_manager.update_task(
+                                task_id,
+                                message="[Super Speed] AI instantly extracting graph topology...",
+                                progress=35
+                            )
+                            from ..utils.llm_client import LLMClient
+                            from zep_cloud.types import AddNodeItem
+                            
+                            llm = LLMClient()
+                            valid_types = [t_item.get("name") for t_item in ontology.get("entity_types", []) if t_item.get("name")]
+                            valid_edges = [t_item.get("name") for t_item in ontology.get("edge_types", []) if t_item.get("name")]
+                            
+                            extract_prompt = f"""Extract 10-15 key stakeholder entities and 10-15 key relationships matching the ontology from this text.
+Allowed entity types: {valid_types}
+Allowed relation types: {valid_edges}
+
+Document excerpt:
+---
+{text[:3500]}
+---
+
+Output a valid JSON object strictly matching:
+{{
+  "nodes": [
+    {{"name": "Entity Name", "type": "<one of allowed entity types>", "summary": "one-sentence summary"}}
+  ],
+  "edges": [
+    {{"source": "Entity Name", "target": "Entity Name", "relation": "<one of allowed relation types>", "fact": "relationship fact"}}
+  ]
+}}
+"""
+                            fast_data = llm.chat_json(
+                                prompt=extract_prompt,
+                                system_prompt="You are an expert knowledge graph entity and relation extractor. Output valid JSON only."
+                            )
+                            raw_nodes = fast_data.get("nodes", [])
+                            raw_edges = fast_data.get("edges", [])
+                            
+                            if raw_nodes:
+                                task_manager.update_task(
+                                    task_id,
+                                    message=f"[Super Speed] Ingesting {len(raw_nodes)} graph nodes instantly...",
+                                    progress=60
+                                )
+                                node_items = [
+                                    AddNodeItem(
+                                        name=n["name"][:100],
+                                        label=n.get("type") or (valid_types[0] if valid_types else "Entity"),
+                                        summary=n.get("summary", "")[:250]
+                                    )
+                                    for n in raw_nodes[:15] if n.get("name")
+                                ]
+                                add_res = builder.client.graph.add_nodes(graph_id=graph_id, nodes=node_items)
+                                
+                                name_to_uuid = {}
+                                for node_obj in getattr(add_res, 'nodes', []):
+                                    name_to_uuid[node_obj.name.lower().strip()] = node_obj.uuid_
+                                
+                                task_manager.update_task(
+                                    task_id,
+                                    message=f"[Super Speed] Linking {len(raw_edges)} relation edges...",
+                                    progress=80
+                                )
+                                for edge in raw_edges[:20]:
+                                    src = (edge.get("source") or "").lower().strip()
+                                    tgt = (edge.get("target") or "").lower().strip()
+                                    if src in name_to_uuid and tgt in name_to_uuid and src != tgt:
+                                        try:
+                                            builder.client.graph.add_fact_triple(
+                                                graph_id=graph_id,
+                                                source_node_uuid=name_to_uuid[src],
+                                                source_node_name=edge.get("source"),
+                                                target_node_uuid=name_to_uuid[tgt],
+                                                target_node_name=edge.get("target"),
+                                                fact_name=edge.get("relation") or (valid_edges[0] if valid_edges else "RELATES_TO"),
+                                                fact=edge.get("fact") or f"{edge.get('source')} {edge.get('relation')} {edge.get('target')}"
+                                            )
+                                        except Exception:
+                                            pass
+                                
+                                super_speed_ingested = True
+                                submission = BatchSubmission(
+                                    batch_id=f"super_speed_{uuid.uuid4().hex[:8]}",
+                                    operation_id=f"op_{uuid.uuid4().hex[:8]}",
+                                    episode_uuids=[],
+                                    item_count=len(node_items)
+                                )
+                                build_logger.info(f"[{task_id}] Super speed instant graph build succeeded with {len(node_items)} nodes!")
+                        except Exception as speed_err:
+                            build_logger.warning(f"[{task_id}] Super speed fast extraction fallback: {speed_err}")
+                            super_speed_ingested = False
+
+                    if not super_speed_ingested:
+                        submission = builder.add_text_batches(
+                            graph_id,
+                            chunks,
+                            batch_size=350,
+                            progress_callback=add_progress_callback,
+                            batch_created_callback=remember_batch,
+                        )
+                        task_manager.update_task(
+                            task_id,
+                            message=t('progress.waitingZepProcess'),
+                            progress=55
+                        )
+                        def wait_progress_callback(msg, progress_ratio):
+                            progress = 55 + int(progress_ratio * 35)
+                            task_manager.update_task(
+                                task_id,
+                                message=msg,
+                                progress=progress
+                            )
+                        builder._wait_for_batch(submission, wait_progress_callback)
                 
                 # Retrieve graph data
                 task_manager.update_task(
