@@ -44,55 +44,35 @@ Within this parallel space, thousands of autonomous agents with independent psyc
 
 ## 🏛️ Core Architectural Pillars
 
-```
-                     ┌────────────────────────────────────────┐
-                     │          UNSTRUCTURED REALITY          │
-                     │   PDF / Reports / Wispr Flow Voice     │
-                     └───────────────────┬────────────────────┘
-                                         │
-                                         ▼
-                     ┌────────────────────────────────────────┐
-                     │       TIGERGRAPH & GraphRAG CORE       │
-                     │ Dynamic Ontology • Relational Grounding│
-                     └───────────────────┬────────────────────┘
-                                         │
-                                         ▼
-                     ┌────────────────────────────────────────┐
-                     │         PERSONA SYNTHESIS ENGINE       │
-                     │    CAMEL-AI / OASIS Agent Profiles     │
-                     └───────────────────┬────────────────────┘
-                                         │
-                                         ▼
-                     ┌────────────────────────────────────────┐
-                     │      3-TIER COGNITIVE SWARM ROUTER     │
-                     │  Tier 0: Akida Neuromorphic Reflex     │
-                     │  Tier 1: LAYA System-1 Fast Routing    │
-                     │  Tier 2: Frontier LLM Reasoning        │
-                     └───────────────────┬────────────────────┘
-                                         │
-                                         ▼
-        ┌────────────────────────────────┴────────────────────────────────┐
-        │                                                                 │
-        ▼                                                                 ▼
-┌───────────────────────────────┐               ┌─────────────────────────────────┐
-│     REDDIT COMMUNITY ARENA    │               │       TWITTER / X STREAM        │
-│ Deep Threads • Upvotes • Factions │           │ Breaking News • Viral Sentiment │
-└───────────────┬───────────────┘               └─────────────────┬───────────────┘
-                │                                                 │
-                └────────────────────────┬────────────────────────┘
-                                         │
-                                         ▼
-                     ┌────────────────────────────────────────┐
-                     │         INTERROGATION & AUDIT          │
-                     │  1-on-1 Agent Deposition • ReportAgent │
-                     └───────────────────┬────────────────────┘
-                                         │
-                                         ▼
-                     ┌────────────────────────────────────────┐
-                     │       viaSocket GOVERNANCE HUB         │
-                     │  2,300+ APIs • Default-Deny • HITL Gate│
-                     └────────────────────────────────────────┘
-```
+### The End-to-End Architectural Flow
+
+1. **Reality Ingestion Layer**
+   * Raw Unstructured Seed Data (PDF / DOCX / Financial Reports / Breaking News) OR **Wispr Flow** (16kHz Zero-Latency Vocal Dictation via Sarvam AI Saaras).
+   * ↓
+2. **TigerGraph & GraphRAG Ontology Engine**
+   * `LLM Dynamic Ontology Induction` ➔ Auto-discovers domain entity types and relational verbs on the fly.
+   * `TigerGraph Schema Instantiation` ➔ Constructs `Entity` vertices (with vector embeddings stored as `LIST<DOUBLE>`) and directed `RELATIONSHIP` edges.
+   * `Relational Grounding` ➔ Serves as the immutable factual anchor, eliminating downstream hallucinations.
+   * ↓
+3. **Persona Synthesis & Social Topology**
+   * `CAMEL-AI / OASIS Agent Compiler` ➔ Synthesizes hundreds of heterogeneous personas with unique belief vectors, bias matrices, platform affinities, and episodic memory.
+   * ↓
+4. **3-Tier Cognitive Swarm Router (The Compute & Token Saver)**
+   * ├─► **Tier 0:** `BrainChip Akida Neuromorphic Spiking Reflex Gate` — filters out ~70% of passive environmental actions with near-zero latency.
+   * ├─► **Tier 1:** `LAYA System-1 Decision Classifier` — sub-millisecond non-autoregressive routing of agent intent and sentiment without generating tokens.
+   * └─► **Tier 2:** `Frontier LLM Reasoning (GPT-4o)` — triggered strictly when an agent actively writes a deep post or counter-argument.
+   * ↓
+5. **Dual-Platform Emergent Simulation Arena**
+   * ├─► **Topic Community (Reddit Arena):** Threaded debates, multi-tiered comments, upvotes/downvotes, and ideological factioning.
+   * └─► **Microblog Stream (Twitter/X Arena):** High-velocity breaking takes, viral retweets, trending hashtags, and sentiment volatility.
+   * *(Dynamically steered via real-time God's-Eye Shock Variable Injections & Temporal Write-Back into TigerGraph)*.
+   * ↓
+6. **Empirical Interrogation & Macro-Intelligence Reporting**
+   * ├─► **1-on-1 Agent Deposition:** Decision-makers cross-examine any simulated persona (*"Why did you boycott in Round 7?"*) by traversing the exact causal subgraph in TigerGraph that triggered their tipping point.
+   * └─► **Tool-Using ReportAgent:** Runs TigerGraph GSQL queries, **PageRank** (Key Influencer Analysis), and **Louvain Community Detection** (Echo Chamber Polarization) ➔ Generates executive risk dossiers with 1-click PDF download.
+   * ↓
+7. **viaSocket Enterprise Action & Governance Hub**
+   * `Default-Deny Security Firewall` ➔ `Human-in-the-Loop (HITL) Gateway` ➔ Governed execution across 2,300+ connected enterprise APIs (Slack, Jira, AWS, GitHub).
 
 ### 1. TigerGraph Deep GraphRAG & Dynamic Ontology
 Lokantra connects natively to **TigerGraph**, the industry-leading deep graph database. Rather than relying on hardcoded relational schemas, our ingestion engine dynamically induces domain ontologies (`POST /api/graph/ontology/generate`) and builds a high-performance graph topology mapping thousands of entities and semantic relationships in real time. This graph serves as the immutable ground truth, eliminating hallucinations during simulation.
